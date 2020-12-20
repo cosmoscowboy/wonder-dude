@@ -79,11 +79,18 @@ function animatePlayer () {
             . . . . f f f f f f f f f f . . 
             . . . . . f f . . . f f f . . . 
             `],
-        Math.abs(gameSpeed) * 5,
+        Math.abs(gameSpeed) * 4,
         true
         )
     }
 }
+controller.B.onEvent(ControllerButtonEvent.Pressed, function () {
+    if (onGround) {
+        dude.vy = jumpSpeed
+        jumping = true
+        animation.stopAnimation(animation.AnimationTypes.All, dude)
+    }
+})
 function setPlayer () {
     jumping = true
     onGround = false
@@ -111,20 +118,45 @@ function setPlayer () {
     setPlayerOnGround(currentGroundPieces[0])
     animatePlayer()
     dude.ay = 250
+    levelDisplay = textsprite.create("")
+    levelDisplay.top = 5
+    setLevelDisplay()
 }
-controller.A.onEvent(ControllerButtonEvent.Pressed, function () {
-    if (onGround) {
-        dude.vy = jumpSpeed
-        jumping = true
-        animation.stopAnimation(animation.AnimationTypes.All, dude)
-    }
-})
+function setVariables () {
+    level = 1
+    distanceTravelled = 0
+    distanceTravelledForLevel = 0
+    groundHasGapsAfterLevel = 3
+    groundHasGaps = false
+    changeLevelAfterDistanceOf = 500
+}
 function checkGroundOffScreen () {
     for (let value of currentGroundPieces) {
         if (value.right < 0) {
+            distanceTravelled += value.width
+            distanceTravelledForLevel += value.width
+            dude.say(distanceTravelled)
             currentGroundPieces.removeAt(currentGroundPieces.indexOf(value))
             value.destroy()
         }
+    }
+    if (!(groundHasGaps)) {
+        for (let index = 0; index <= currentGroundPieces.length - 1; index++) {
+            aGround = currentGroundPieces[index]
+            if (index + 1 < currentGroundPieces.length) {
+                nextGroundPiece = currentGroundPieces[index + 1]
+                nextGroundPiece.left = aGround.right
+            }
+        }
+    }
+    if (distanceTravelledForLevel > changeLevelAfterDistanceOf) {
+        level += 1
+        distanceTravelledForLevel = 0
+        setLevelDisplay()
+    }
+    if (!(groundHasGaps) && level >= groundHasGapsAfterLevel) {
+        game.showLongText("The ground is breaking up. Press B (E on keyboard) to jump.", DialogLayout.Bottom)
+        groundHasGaps = true
     }
 }
 function getNextGroundPiece () {
@@ -334,6 +366,10 @@ function moveGround () {
         value.vx = gameSpeed
     }
 }
+function setLevelDisplay () {
+    levelDisplay.setText("Level: " + level)
+    levelDisplay.x = screenWidth / 2
+}
 function setRandomGround () {
     groundLength = randint(2, 10)
     if (groundLength == 2) {
@@ -361,11 +397,10 @@ function setRandomGround () {
     currentGroundPieces.push(aGround)
 }
 function setNextGap () {
-    gap = randint(gapMinimum, gapMaximum)
-}
-function checkPlayerOffScreen () {
-    if (dude.top > screenHeight) {
-        game.over(false)
+    if (groundHasGaps) {
+        gap = randint(gapMinimum, gapMaximum)
+    } else {
+        gap = 0
     }
 }
 function setPlayerOnGround (ground: Sprite) {
@@ -373,8 +408,12 @@ function setPlayerOnGround (ground: Sprite) {
     dude.vx = 0
     dude.vy = 0
 }
+function checkPlayer () {
+    if (dude.top > screenHeight) {
+        game.over(false)
+    }
+}
 let groundLength = 0
-let aGround: Sprite = null
 let ground10: Image = null
 let ground9: Image = null
 let ground8: Image = null
@@ -390,13 +429,23 @@ let gapMinimum = 0
 let gap = 0
 let screenWidth = 0
 let groundMaximumX = 0
+let nextGroundPiece: Sprite = null
+let aGround: Sprite = null
+let changeLevelAfterDistanceOf = 0
+let groundHasGaps = false
+let groundHasGapsAfterLevel = 0
+let distanceTravelledForLevel = 0
+let distanceTravelled = 0
+let level = 0
+let levelDisplay: TextSprite = null
 let currentGroundPieces: Sprite[] = []
-let jumpSpeed = 0
 let dying = false
+let jumpSpeed = 0
 let onGround = false
 let gameSpeed = 0
 let dude: Sprite = null
 let jumping = false
+setVariables()
 createBackgroundSprites()
 setPlayer()
 moveGround()
@@ -404,10 +453,5 @@ game.onUpdate(function () {
     checkGroundOffScreen()
     getNextGroundPiece()
     checkOnGround()
-    checkPlayerOffScreen()
-    if (!(dying)) {
-    	
-    } else {
-    	
-    }
+    checkPlayer()
 })
