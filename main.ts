@@ -7,95 +7,42 @@ namespace SpriteKind {
     export const Ground = SpriteKind.create()
 }
 function animatePlayer () {
-    if (jumping) {
-        animation.runImageAnimation(
-        dude,
-        [img`
-            . . . . . . f f f f f f . . . . 
-            . . . . f f e e e e f 2 f . . . 
-            . . . f f e e e e f 2 2 2 f . . 
-            . . . f e e e f f e e e e f . . 
-            . . . f f f f e e 2 2 2 2 e f . 
-            . . . f e 2 2 2 f f f f e 2 f . 
-            . . f f f f f f f e e e f f f . 
-            . . f f e 4 4 e b f 4 4 e e f . 
-            . . f e e 4 d 4 1 f d d e f . . 
-            . . . f e e e 4 d d d d f . . . 
-            . . . . f f e e 4 4 4 e f . . . 
-            . . . . . 4 d d e 2 2 2 f . . . 
-            . . . . . e d d e 2 2 2 f . . . 
-            . . . . . f e e f 4 5 5 f . . . 
-            . . . . . . f f f f f f . . . . 
-            . . . . . . . f f f . . . . . . 
-            `,img`
-            . . . . . . . . . . . . . . . . 
-            . . . . . . f f f f f f . . . . 
-            . . . . f f e e e e f 2 f . . . 
-            . . . f f e e e e f 2 2 2 f . . 
-            . . . f e e e f f e e e e f . . 
-            . . . f f f f e e 2 2 2 2 e f . 
-            . . . f e 2 2 2 f f f f e 2 f . 
-            . . f f f f f f f e e e f f f . 
-            . . f f e 4 4 e b f 4 4 e e f . 
-            . . f e e 4 d 4 1 f d d e f . . 
-            . . . f e e e e e d d d f . . . 
-            . . . . . f 4 d d e 4 e f . . . 
-            . . . . . f e d d e 2 2 f . . . 
-            . . . . f f f e e f 5 5 f f . . 
-            . . . . f f f f f f f f f f . . 
-            . . . . . f f . . . f f f . . . 
-            `,img`
-            . . . . . . f f f f f f . . . . 
-            . . . . f f e e e e f 2 f . . . 
-            . . . f f e e e e f 2 2 2 f . . 
-            . . . f e e e f f e e e e f . . 
-            . . . f f f f e e 2 2 2 2 e f . 
-            . . . f e 2 2 2 f f f f e 2 f . 
-            . . f f f f f f f e e e f f f . 
-            . . f f e 4 4 e b f 4 4 e e f . 
-            . . f e e 4 d 4 1 f d d e f . . 
-            . . . f e e e 4 d d d d f . . . 
-            . . . . f f e e 4 4 4 e f . . . 
-            . . . . . 4 d d e 2 2 2 f . . . 
-            . . . . . e d d e 2 2 2 f . . . 
-            . . . . . f e e f 4 5 5 f . . . 
-            . . . . . . f f f f f f . . . . 
-            . . . . . . . f f f . . . . . . 
-            `,img`
-            . . . . . . . . . . . . . . . . 
-            . . . . . . f f f f f f . . . . 
-            . . . . f f e e e e f 2 f . . . 
-            . . . f f e e e e f 2 2 2 f . . 
-            . . . f e e e f f e e e e f . . 
-            . . . f f f f e e 2 2 2 2 e f . 
-            . . . f e 2 2 2 f f f f e 2 f . 
-            . . f f f f f f f e e e f f f . 
-            . . f f e 4 4 e b f 4 4 e e f . 
-            . . f e e 4 d 4 1 f d d e f . . 
-            . . . f e e e 4 d d d d f . . . 
-            . . . . 4 d d e 4 4 4 e f . . . 
-            . . . . e d d e 2 2 2 2 f . . . 
-            . . . . f e e f 4 4 5 5 f f . . 
-            . . . . f f f f f f f f f f . . 
-            . . . . . f f . . . f f f . . . 
-            `],
-        Math.abs(gameSpeed) * 4,
-        true
-        )
-    }
+    character.loopFrames(
+    dude,
+    walkingImagesRight,
+    Math.abs(walkingSpeed) * 4,
+    character.rule(Predicate.MovingRight)
+    )
+    character.loopFrames(
+    dude,
+    walkingImagesLeft,
+    Math.abs(walkingSpeed) * 4,
+    character.rule(Predicate.MovingLeft)
+    )
+    character.loopFrames(
+    dude,
+    jumpingImagesRight,
+    Math.abs(walkingSpeed) * 6,
+    character.rule(Predicate.MovingUp, Predicate.FacingRight)
+    )
+    character.loopFrames(
+    dude,
+    jumpingImagesLeft,
+    Math.abs(walkingSpeed) * 6,
+    character.rule(Predicate.MovingUp, Predicate.FacingLeft)
+    )
 }
 controller.B.onEvent(ControllerButtonEvent.Pressed, function () {
     if (onGround) {
         dude.vy = jumpSpeed
         jumping = true
-        animation.stopAnimation(animation.AnimationTypes.All, dude)
     }
 })
 function setPlayer () {
     jumping = true
     onGround = false
     dying = false
-    jumpSpeed = -150
+    jumpSpeed = -125
     dude = sprites.create(img`
         . . . . . . f f f f f f . . . . 
         . . . . f f e e e e f 2 f . . . 
@@ -114,7 +61,217 @@ function setPlayer () {
         . . . . . . f f f f f f . . . . 
         . . . . . . . f f f . . . . . . 
         `, SpriteKind.Player)
-    dude.x = dude.width * 2
+    walkingSpeed = 75
+    walkingImagesRight = [img`
+        . . . . . . f f f f f f . . . . 
+        . . . . f f e e e e f 2 f . . . 
+        . . . f f e e e e f 2 2 2 f . . 
+        . . . f e e e f f e e e e f . . 
+        . . . f f f f e e 2 2 2 2 e f . 
+        . . . f e 2 2 2 f f f f e 2 f . 
+        . . f f f f f f f e e e f f f . 
+        . . f f e 4 4 e b f 4 4 e e f . 
+        . . f e e 4 d 4 1 f d d e f . . 
+        . . . f e e e 4 d d d d f . . . 
+        . . . . f f e e 4 4 4 e f . . . 
+        . . . . . 4 d d e 2 2 2 f . . . 
+        . . . . . e d d e 2 2 2 f . . . 
+        . . . . . f e e f 4 5 5 f . . . 
+        . . . . . . f f f f f f . . . . 
+        . . . . . . . f f f . . . . . . 
+        `,img`
+        . . . . . . . . . . . . . . . . 
+        . . . . . . f f f f f f . . . . 
+        . . . . f f e e e e f 2 f . . . 
+        . . . f f e e e e f 2 2 2 f . . 
+        . . . f e e e f f e e e e f . . 
+        . . . f f f f e e 2 2 2 2 e f . 
+        . . . f e 2 2 2 f f f f e 2 f . 
+        . . f f f f f f f e e e f f f . 
+        . . f f e 4 4 e b f 4 4 e e f . 
+        . . f e e 4 d 4 1 f d d e f . . 
+        . . . f e e e e e d d d f . . . 
+        . . . . . f 4 d d e 4 e f . . . 
+        . . . . . f e d d e 2 2 f . . . 
+        . . . . f f f e e f 5 5 f f . . 
+        . . . . f f f f f f f f f f . . 
+        . . . . . f f . . . f f f . . . 
+        `,img`
+        . . . . . . f f f f f f . . . . 
+        . . . . f f e e e e f 2 f . . . 
+        . . . f f e e e e f 2 2 2 f . . 
+        . . . f e e e f f e e e e f . . 
+        . . . f f f f e e 2 2 2 2 e f . 
+        . . . f e 2 2 2 f f f f e 2 f . 
+        . . f f f f f f f e e e f f f . 
+        . . f f e 4 4 e b f 4 4 e e f . 
+        . . f e e 4 d 4 1 f d d e f . . 
+        . . . f e e e 4 d d d d f . . . 
+        . . . . f f e e 4 4 4 e f . . . 
+        . . . . . 4 d d e 2 2 2 f . . . 
+        . . . . . e d d e 2 2 2 f . . . 
+        . . . . . f e e f 4 5 5 f . . . 
+        . . . . . . f f f f f f . . . . 
+        . . . . . . . f f f . . . . . . 
+        `,img`
+        . . . . . . . . . . . . . . . . 
+        . . . . . . f f f f f f . . . . 
+        . . . . f f e e e e f 2 f . . . 
+        . . . f f e e e e f 2 2 2 f . . 
+        . . . f e e e f f e e e e f . . 
+        . . . f f f f e e 2 2 2 2 e f . 
+        . . . f e 2 2 2 f f f f e 2 f . 
+        . . f f f f f f f e e e f f f . 
+        . . f f e 4 4 e b f 4 4 e e f . 
+        . . f e e 4 d 4 1 f d d e f . . 
+        . . . f e e e 4 d d d d f . . . 
+        . . . . 4 d d e 4 4 4 e f . . . 
+        . . . . e d d e 2 2 2 2 f . . . 
+        . . . . f e e f 4 4 5 5 f f . . 
+        . . . . f f f f f f f f f f . . 
+        . . . . . f f . . . f f f . . . 
+        `]
+    walkingImagesLeft = [img`
+        . . . . f f f f f f . . . . . . 
+        . . . f 2 f e e e e f f . . . . 
+        . . f 2 2 2 f e e e e f f . . . 
+        . . f e e e e f f e e e f . . . 
+        . f e 2 2 2 2 e e f f f f . . . 
+        . f 2 e f f f f 2 2 2 e f . . . 
+        . f f f e e e f f f f f f f . . 
+        . f e e 4 4 f b e 4 4 e f f . . 
+        . . f e d d f 1 4 d 4 e e f . . 
+        . . . f d d d d 4 e e e f . . . 
+        . . . f e 4 4 4 e e f f . . . . 
+        . . . f 2 2 2 e d d 4 . . . . . 
+        . . . f 2 2 2 e d d e . . . . . 
+        . . . f 5 5 4 f e e f . . . . . 
+        . . . . f f f f f f . . . . . . 
+        . . . . . . f f f . . . . . . . 
+        `,img`
+        . . . . . . . . . . . . . . . . 
+        . . . . f f f f f f . . . . . . 
+        . . . f 2 f e e e e f f . . . . 
+        . . f 2 2 2 f e e e e f f . . . 
+        . . f e e e e f f e e e f . . . 
+        . f e 2 2 2 2 e e f f f f . . . 
+        . f 2 e f f f f 2 2 2 e f . . . 
+        . f f f e e e f f f f f f f . . 
+        . f e e 4 4 f b e 4 4 e f f . . 
+        . . f e d d f 1 4 d 4 e e f . . 
+        . . . f d d d e e e e e f . . . 
+        . . . f e 4 e d d 4 f . . . . . 
+        . . . f 2 2 e d d e f . . . . . 
+        . . f f 5 5 f e e f f f . . . . 
+        . . f f f f f f f f f f . . . . 
+        . . . f f f . . . f f . . . . . 
+        `,img`
+        . . . . f f f f f f . . . . . . 
+        . . . f 2 f e e e e f f . . . . 
+        . . f 2 2 2 f e e e e f f . . . 
+        . . f e e e e f f e e e f . . . 
+        . f e 2 2 2 2 e e f f f f . . . 
+        . f 2 e f f f f 2 2 2 e f . . . 
+        . f f f e e e f f f f f f f . . 
+        . f e e 4 4 f b e 4 4 e f f . . 
+        . . f e d d f 1 4 d 4 e e f . . 
+        . . . f d d d d 4 e e e f . . . 
+        . . . f e 4 4 4 e e f f . . . . 
+        . . . f 2 2 2 e d d 4 . . . . . 
+        . . . f 2 2 2 e d d e . . . . . 
+        . . . f 5 5 4 f e e f . . . . . 
+        . . . . f f f f f f . . . . . . 
+        . . . . . . f f f . . . . . . . 
+        `,img`
+        . . . . . . . . . . . . . . . . 
+        . . . . f f f f f f . . . . . . 
+        . . . f 2 f e e e e f f . . . . 
+        . . f 2 2 2 f e e e e f f . . . 
+        . . f e e e e f f e e e f . . . 
+        . f e 2 2 2 2 e e f f f f . . . 
+        . f 2 e f f f f 2 2 2 e f . . . 
+        . f f f e e e f f f f f f f . . 
+        . f e e 4 4 f b e 4 4 e f f . . 
+        . . f e d d f 1 4 d 4 e e f . . 
+        . . . f d d d d 4 e e e f . . . 
+        . . . f e 4 4 4 e d d 4 . . . . 
+        . . . f 2 2 2 2 e d d e . . . . 
+        . . f f 5 5 4 4 f e e f . . . . 
+        . . f f f f f f f f f f . . . . 
+        . . . f f f . . . f f . . . . . 
+        `]
+    jumpingImagesRight = [img`
+        . . . . . . . . . . . . . . . . 
+        . . . . . . f f f f f f . . . . 
+        . . . . f f e e e e f 2 f . . . 
+        . . . f f e e e e f 2 2 2 f . . 
+        . . . f e e e f f e e e e f . . 
+        . . . f f f f e e 2 2 2 2 e f . 
+        . . . f e 2 2 2 f f f f e 2 f . 
+        . . f f f f f f f e e e f f f . 
+        . . f f e 4 4 e b f 4 4 e e f . 
+        . . f e e 4 d 4 1 f d d e f . . 
+        . . . f e e e e e d d d f . . . 
+        . . . . . f 4 d d e 4 e f . . . 
+        . . . . . f e d d e 2 2 f . . . 
+        . . . . f f f e e f 5 5 f f . . 
+        . . . . f f f f f f f f f f . . 
+        . . . . . f f . . . f f f . . . 
+        `,img`
+        . . . . . . . . . . . . . . . . 
+        . . . . . . f f f f f f . . . . 
+        . . . . f f e e e e f 2 f . . . 
+        . . . f f e e e e f 2 2 2 f . . 
+        . . . f e e e f f e e e e f . . 
+        . . . f f f f e e 2 2 2 2 e f . 
+        . . . f e 2 2 2 f f f f e 2 f . 
+        . . f f f f f f f e e e f f f . 
+        . . f f e 4 4 e b f 4 4 e e f . 
+        . . f e e 4 d 4 1 f d d e f . . 
+        . . . f e e e 4 d d d d f . . . 
+        . . . . 4 d d e 4 4 4 e f . . . 
+        . . . . e d d e 2 2 2 2 f . . . 
+        . . . . f e e f 4 4 5 5 f f . . 
+        . . . . f f f f f f f f f f . . 
+        . . . . . f f . . . f f f . . . 
+        `]
+    jumpingImagesLeft = [img`
+        . . . . . . . . . . . . . . . . 
+        . . . . f f f f f f . . . . . . 
+        . . . f 2 f e e e e f f . . . . 
+        . . f 2 2 2 f e e e e f f . . . 
+        . . f e e e e f f e e e f . . . 
+        . f e 2 2 2 2 e e f f f f . . . 
+        . f 2 e f f f f 2 2 2 e f . . . 
+        . f f f e e e f f f f f f f . . 
+        . f e e 4 4 f b e 4 4 e f f . . 
+        . . f e d d f 1 4 d 4 e e f . . 
+        . . . f d d d e e e e e f . . . 
+        . . . f e 4 e d d 4 f . . . . . 
+        . . . f 2 2 e d d e f . . . . . 
+        . . f f 5 5 f e e f f f . . . . 
+        . . f f f f f f f f f f . . . . 
+        . . . f f f . . . f f . . . . . 
+        `,img`
+        . . . . . . . . . . . . . . . . 
+        . . . . f f f f f f . . . . . . 
+        . . . f 2 f e e e e f f . . . . 
+        . . f 2 2 2 f e e e e f f . . . 
+        . . f e e e e f f e e e f . . . 
+        . f e 2 2 2 2 e e f f f f . . . 
+        . f 2 e f f f f 2 2 2 e f . . . 
+        . f f f e e e f f f f f f f . . 
+        . f e e 4 4 f b e 4 4 e f f . . 
+        . . f e d d f 1 4 d 4 e e f . . 
+        . . . f d d d d 4 e e e f . . . 
+        . . . f e 4 4 4 e d d 4 . . . . 
+        . . . f 2 2 2 2 e d d e . . . . 
+        . . f f 5 5 4 4 f e e f . . . . 
+        . . f f f f f f f f f f . . . . 
+        . . . f f f . . . f f . . . . . 
+        `]
+    controller.moveSprite(dude, walkingSpeed, 0)
+    dude.x = playerStartsAt
     setPlayerOnGround(currentGroundPieces[0])
     animatePlayer()
     dude.ay = 250
@@ -123,12 +280,19 @@ function setPlayer () {
     setLevelDisplay()
 }
 function setVariables () {
+    scene.setBackgroundColor(8)
+    screenWidth = scene.screenWidth()
+    screenHeight = scene.screenHeight()
     level = 1
     distanceTravelled = 0
     distanceTravelledForLevel = 0
     groundHasGapsAfterLevel = 3
     groundHasGaps = false
-    changeLevelAfterDistanceOf = 500
+    changeLevelAfterDistanceOf = 50
+    playerStartsAt = 20
+    playerCannotMovePast = 60
+    gapMinimum = 16
+    gapMaximum = 55
 }
 function checkGroundOffScreen () {
     for (let value of currentGroundPieces) {
@@ -149,15 +313,7 @@ function checkGroundOffScreen () {
             }
         }
     }
-    if (distanceTravelledForLevel > changeLevelAfterDistanceOf) {
-        level += 1
-        distanceTravelledForLevel = 0
-        setLevelDisplay()
-    }
-    if (!(groundHasGaps) && level >= groundHasGapsAfterLevel) {
-        game.showLongText("The ground is breaking up. Press B (E on keyboard) to jump.", DialogLayout.Bottom)
-        groundHasGaps = true
-    }
+    checkLevelFromDistance()
 }
 function getNextGroundPiece () {
     groundMaximumX = 0
@@ -172,11 +328,6 @@ function getNextGroundPiece () {
     }
 }
 function createBackgroundSprites () {
-    gameSpeed = -50
-    gapMinimum = 16
-    gapMaximum = 55
-    screenWidth = scene.screenWidth()
-    screenHeight = scene.screenHeight()
     ground2 = img`
         66666666666666666666666666666666
         77777666777776667777766677777666
@@ -344,6 +495,17 @@ function createBackgroundSprites () {
     currentGroundPieces = [aGround]
     setNextGap()
 }
+function checkLevelFromDistance () {
+    if (distanceTravelledForLevel > changeLevelAfterDistanceOf) {
+        level += 1
+        distanceTravelledForLevel = 0
+        setLevelDisplay()
+    }
+    if (!(groundHasGaps) && level >= groundHasGapsAfterLevel) {
+        game.showLongText("The ground is breaking up. Press B (E on keyboard) to jump.", DialogLayout.Bottom)
+        groundHasGaps = true
+    }
+}
 function checkOnGround () {
     onGround = false
     for (let value of currentGroundPieces) {
@@ -351,7 +513,6 @@ function checkOnGround () {
             if (dude.overlapsWith(value)) {
                 if (dude.bottom - 5 < value.top) {
                     setPlayerOnGround(value)
-                    animatePlayer()
                     onGround = true
                     jumping = false
                 } else {
@@ -362,8 +523,14 @@ function checkOnGround () {
     }
 }
 function moveGround () {
-    for (let value of currentGroundPieces) {
-        value.vx = gameSpeed
+    gameSpeed = 0
+    if (dude.vx > 0) {
+        gameSpeed = dude.vx * -1
+    }
+    if (dude.x + 1 > playerCannotMovePast) {
+        for (let value of currentGroundPieces) {
+            value.vx = gameSpeed
+        }
     }
 }
 function setLevelDisplay () {
@@ -409,11 +576,17 @@ function setPlayerOnGround (ground: Sprite) {
     dude.vy = 0
 }
 function checkPlayer () {
+    if (dude.x > playerCannotMovePast) {
+        dude.x = playerCannotMovePast
+    } else if (dude.x < playerStartsAt) {
+        dude.x = playerStartsAt
+    }
     if (dude.top > screenHeight) {
         game.over(false)
     }
 }
 let groundLength = 0
+let gameSpeed = 0
 let ground10: Image = null
 let ground9: Image = null
 let ground8: Image = null
@@ -423,33 +596,39 @@ let ground5: Image = null
 let ground4: Image = null
 let ground3: Image = null
 let ground2: Image = null
-let screenHeight = 0
-let gapMaximum = 0
-let gapMinimum = 0
 let gap = 0
-let screenWidth = 0
 let groundMaximumX = 0
 let nextGroundPiece: Sprite = null
 let aGround: Sprite = null
+let gapMaximum = 0
+let gapMinimum = 0
+let playerCannotMovePast = 0
 let changeLevelAfterDistanceOf = 0
 let groundHasGaps = false
 let groundHasGapsAfterLevel = 0
 let distanceTravelledForLevel = 0
 let distanceTravelled = 0
 let level = 0
+let screenHeight = 0
+let screenWidth = 0
 let levelDisplay: TextSprite = null
 let currentGroundPieces: Sprite[] = []
+let playerStartsAt = 0
 let dying = false
+let jumping = false
 let jumpSpeed = 0
 let onGround = false
-let gameSpeed = 0
+let jumpingImagesLeft: Image[] = []
+let jumpingImagesRight: Image[] = []
+let walkingImagesLeft: Image[] = []
+let walkingSpeed = 0
+let walkingImagesRight: Image[] = []
 let dude: Sprite = null
-let jumping = false
 setVariables()
 createBackgroundSprites()
 setPlayer()
-moveGround()
 game.onUpdate(function () {
+    moveGround()
     checkGroundOffScreen()
     getNextGroundPiece()
     checkOnGround()
