@@ -526,8 +526,12 @@ function moveGround () {
     gameSpeed = 0
     if (dude.vx > 0) {
         gameSpeed = dude.vx * -1
+    } else {
+        for (let value of currentGroundPieces) {
+            value.vx = 0
+        }
     }
-    if (dude.x + 1 > playerCannotMovePast) {
+    if (dude.x + 1 > playerCannotMovePast && dude.vx > 0) {
         for (let value of currentGroundPieces) {
             value.vx = gameSpeed
         }
