@@ -139,9 +139,9 @@ function getNextGroundPiece () {
     }
 }
 function createBackgroundSprites () {
-    gameSpeed = -40
+    gameSpeed = -50
     gapMinimum = 16
-    gapMaximum = 48
+    gapMaximum = 55
     screenWidth = scene.screenWidth()
     screenHeight = scene.screenHeight()
     ground2 = img`
@@ -316,10 +316,12 @@ function checkOnGround () {
     for (let value of currentGroundPieces) {
         if (!(onGround)) {
             if (dude.overlapsWith(value)) {
-                setPlayerOnGround(value)
-                animatePlayer()
-                onGround = true
-                jumping = false
+                if (dude.bottom - 5 < value.top) {
+                    setPlayerOnGround(value)
+                    animatePlayer()
+                    onGround = true
+                    jumping = false
+                }
             }
         }
     }
@@ -364,7 +366,7 @@ function checkPlayerOffScreen () {
     }
 }
 function setPlayerOnGround (ground: Sprite) {
-    dude.bottom = ground.top + 1
+    dude.bottom = ground.top
     dude.vx = 0
     dude.vy = 0
 }
