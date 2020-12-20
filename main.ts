@@ -1,9 +1,93 @@
+enum ActionKind {
+    Walking,
+    Idle,
+    Jumping
+}
 namespace SpriteKind {
     export const Ground = SpriteKind.create()
 }
+function animatePlayer () {
+    if (jumping) {
+        animation.runImageAnimation(
+        dude,
+        [img`
+            . . . . . . f f f f f f . . . . 
+            . . . . f f e e e e f 2 f . . . 
+            . . . f f e e e e f 2 2 2 f . . 
+            . . . f e e e f f e e e e f . . 
+            . . . f f f f e e 2 2 2 2 e f . 
+            . . . f e 2 2 2 f f f f e 2 f . 
+            . . f f f f f f f e e e f f f . 
+            . . f f e 4 4 e b f 4 4 e e f . 
+            . . f e e 4 d 4 1 f d d e f . . 
+            . . . f e e e 4 d d d d f . . . 
+            . . . . f f e e 4 4 4 e f . . . 
+            . . . . . 4 d d e 2 2 2 f . . . 
+            . . . . . e d d e 2 2 2 f . . . 
+            . . . . . f e e f 4 5 5 f . . . 
+            . . . . . . f f f f f f . . . . 
+            . . . . . . . f f f . . . . . . 
+            `,img`
+            . . . . . . . . . . . . . . . . 
+            . . . . . . f f f f f f . . . . 
+            . . . . f f e e e e f 2 f . . . 
+            . . . f f e e e e f 2 2 2 f . . 
+            . . . f e e e f f e e e e f . . 
+            . . . f f f f e e 2 2 2 2 e f . 
+            . . . f e 2 2 2 f f f f e 2 f . 
+            . . f f f f f f f e e e f f f . 
+            . . f f e 4 4 e b f 4 4 e e f . 
+            . . f e e 4 d 4 1 f d d e f . . 
+            . . . f e e e e e d d d f . . . 
+            . . . . . f 4 d d e 4 e f . . . 
+            . . . . . f e d d e 2 2 f . . . 
+            . . . . f f f e e f 5 5 f f . . 
+            . . . . f f f f f f f f f f . . 
+            . . . . . f f . . . f f f . . . 
+            `,img`
+            . . . . . . f f f f f f . . . . 
+            . . . . f f e e e e f 2 f . . . 
+            . . . f f e e e e f 2 2 2 f . . 
+            . . . f e e e f f e e e e f . . 
+            . . . f f f f e e 2 2 2 2 e f . 
+            . . . f e 2 2 2 f f f f e 2 f . 
+            . . f f f f f f f e e e f f f . 
+            . . f f e 4 4 e b f 4 4 e e f . 
+            . . f e e 4 d 4 1 f d d e f . . 
+            . . . f e e e 4 d d d d f . . . 
+            . . . . f f e e 4 4 4 e f . . . 
+            . . . . . 4 d d e 2 2 2 f . . . 
+            . . . . . e d d e 2 2 2 f . . . 
+            . . . . . f e e f 4 5 5 f . . . 
+            . . . . . . f f f f f f . . . . 
+            . . . . . . . f f f . . . . . . 
+            `,img`
+            . . . . . . . . . . . . . . . . 
+            . . . . . . f f f f f f . . . . 
+            . . . . f f e e e e f 2 f . . . 
+            . . . f f e e e e f 2 2 2 f . . 
+            . . . f e e e f f e e e e f . . 
+            . . . f f f f e e 2 2 2 2 e f . 
+            . . . f e 2 2 2 f f f f e 2 f . 
+            . . f f f f f f f e e e f f f . 
+            . . f f e 4 4 e b f 4 4 e e f . 
+            . . f e e 4 d 4 1 f d d e f . . 
+            . . . f e e e 4 d d d d f . . . 
+            . . . . 4 d d e 4 4 4 e f . . . 
+            . . . . e d d e 2 2 2 2 f . . . 
+            . . . . f e e f 4 4 5 5 f f . . 
+            . . . . f f f f f f f f f f . . 
+            . . . . . f f . . . f f f . . . 
+            `],
+        Math.abs(gameSpeed) * 6,
+        true
+        )
+    }
+}
 function setPlayer () {
-    jumping = false
-    onGround = true
+    jumping = true
+    onGround = false
+    jumpSpeed = -150
     dude = sprites.create(img`
         . . . . . . f f f f f f . . . . 
         . . . . f f e e e e f 2 f . . . 
@@ -24,8 +108,16 @@ function setPlayer () {
         `, SpriteKind.Player)
     dude.x = dude.width * 2
     setPlayerOnGround(currentGroundPieces[0])
-    dude.ay = 30
+    animatePlayer()
+    dude.ay = 250
 }
+controller.A.onEvent(ControllerButtonEvent.Pressed, function () {
+    if (onGround) {
+        dude.vy = jumpSpeed
+        jumping = true
+        animation.stopAnimation(animation.AnimationTypes.All, dude)
+    }
+})
 function checkGroundOffScreen () {
     for (let value of currentGroundPieces) {
         if (value.right < 0) {
@@ -48,7 +140,7 @@ function getNextGroundPiece () {
 }
 function createBackgroundSprites () {
     gameSpeed = -40
-    gapMinimum = 32
+    gapMinimum = 16
     gapMaximum = 48
     screenWidth = scene.screenWidth()
     screenHeight = scene.screenHeight()
@@ -220,14 +312,14 @@ function createBackgroundSprites () {
     setNextGap()
 }
 function checkOnGround () {
-    if (!(jumping)) {
-        onGround = false
-        for (let value of currentGroundPieces) {
-            if (!(onGround)) {
-                if (dude.overlapsWith(value)) {
-                    setPlayerOnGround(value)
-                    onGround = true
-                }
+    onGround = false
+    for (let value of currentGroundPieces) {
+        if (!(onGround)) {
+            if (dude.overlapsWith(value)) {
+                setPlayerOnGround(value)
+                animatePlayer()
+                onGround = true
+                jumping = false
             }
         }
     }
@@ -273,6 +365,8 @@ function checkPlayerOffScreen () {
 }
 function setPlayerOnGround (ground: Sprite) {
     dude.bottom = ground.top + 1
+    dude.vx = 0
+    dude.vy = 0
 }
 let groundLength = 0
 let aGround: Sprite = null
@@ -288,13 +382,14 @@ let ground2: Image = null
 let screenHeight = 0
 let gapMaximum = 0
 let gapMinimum = 0
-let gameSpeed = 0
 let gap = 0
 let screenWidth = 0
 let groundMaximumX = 0
 let currentGroundPieces: Sprite[] = []
-let dude: Sprite = null
+let jumpSpeed = 0
 let onGround = false
+let gameSpeed = 0
+let dude: Sprite = null
 let jumping = false
 createBackgroundSprites()
 setPlayer()

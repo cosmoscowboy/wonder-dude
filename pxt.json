@@ -2,7 +2,9 @@
     "name": "Wonder Dude",
     "description": "",
     "dependencies": {
-        "device": "*"
+        "device": "*",
+        "animation": "*",
+        "character-animations": "github:riknoll/character-animations#v0.3.0"
     },
     "files": [
         "main.blocks",
