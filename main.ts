@@ -79,7 +79,7 @@ function animatePlayer () {
             . . . . f f f f f f f f f f . . 
             . . . . . f f . . . f f f . . . 
             `],
-        Math.abs(gameSpeed) * 6,
+        Math.abs(gameSpeed) * 5,
         true
         )
     }
@@ -87,6 +87,7 @@ function animatePlayer () {
 function setPlayer () {
     jumping = true
     onGround = false
+    dying = false
     jumpSpeed = -150
     dude = sprites.create(img`
         . . . . . . f f f f f f . . . . 
@@ -321,6 +322,8 @@ function checkOnGround () {
                     animatePlayer()
                     onGround = true
                     jumping = false
+                } else {
+                    dude.vx = value.vx
                 }
             }
         }
@@ -389,6 +392,7 @@ let screenWidth = 0
 let groundMaximumX = 0
 let currentGroundPieces: Sprite[] = []
 let jumpSpeed = 0
+let dying = false
 let onGround = false
 let gameSpeed = 0
 let dude: Sprite = null
@@ -401,4 +405,9 @@ game.onUpdate(function () {
     getNextGroundPiece()
     checkOnGround()
     checkPlayerOffScreen()
+    if (!(dying)) {
+    	
+    } else {
+    	
+    }
 })
