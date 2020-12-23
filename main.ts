@@ -5,6 +5,9 @@ enum ActionKind {
 }
 namespace SpriteKind {
     export const Ground = SpriteKind.create()
+    export const Mushroom = SpriteKind.create()
+    export const MushroomTaken = SpriteKind.create()
+    export const WeaponToTake = SpriteKind.create()
 }
 function animatePlayer () {
     character.loopFrames(
@@ -37,6 +40,22 @@ controller.B.onEvent(ControllerButtonEvent.Pressed, function () {
         dude.vy = jumpSpeed
         jumping = true
     }
+})
+sprites.onOverlap(SpriteKind.MushroomTaken, SpriteKind.Ground, function (sprite, otherSprite) {
+    weapon = sprites.create(img`
+        . . . . . . . . 
+        . . . 5 5 . . . 
+        . . 5 5 5 5 . . 
+        . 5 5 5 5 5 5 . 
+        . f f f f f f . 
+        . . . e 7 . . . 
+        . . . e 7 . . . 
+        . . . e 7 . . . 
+        `, SpriteKind.WeaponToTake)
+    weapon.x = aMushroom.x
+    weapon.bottom = aMushroom.bottom
+    screenElements.push(weapon)
+    aMushroom.destroy(effects.disintegrate, 500)
 })
 function setPlayer () {
     jumping = true
@@ -270,7 +289,7 @@ function setPlayer () {
         . . f f f f f f f f f f . . . . 
         . . . f f f . . . f f . . . . . 
         `]
-    controller.moveSprite(dude, walkingSpeed, 0)
+    controller.moveSprite(dude, walkingSpeed, 100)
     dude.x = playerStartsAt
     setPlayerOnGround(currentGroundPieces[0])
     animatePlayer()
@@ -278,6 +297,20 @@ function setPlayer () {
     levelDisplay = textsprite.create("")
     levelDisplay.top = 5
     setLevelDisplay()
+}
+sprites.onOverlap(SpriteKind.Player, SpriteKind.WeaponToTake, function (sprite, otherSprite) {
+    hasWeapon = true
+    otherSprite.destroy()
+    sprite.say("Weapon!")
+    timer.after(1000, function () {
+        sprite.say("")
+    })
+})
+function placeOnGround (aSprite: Sprite, distanceFromPlayer: number) {
+    aSprite.bottom = currentGroundPieces[0].top
+    aSprite.x = dude.x + Math.abs(distanceFromPlayer)
+    aSprite.bottom = currentGroundPieces[0].top
+    screenElements.push(aSprite)
 }
 function setVariables () {
     scene.setBackgroundColor(8)
@@ -288,11 +321,14 @@ function setVariables () {
     distanceTravelledForLevel = 0
     groundHasGapsAfterLevel = 3
     groundHasGaps = false
+    canGetWeapon = false
+    hasWeapon = false
     changeLevelAfterDistanceOf = 50
     playerStartsAt = 20
     playerCannotMovePast = 60
     gapMinimum = 16
     gapMaximum = 55
+    screenElements = []
 }
 function checkGroundOffScreen () {
     for (let value of currentGroundPieces) {
@@ -327,7 +363,46 @@ function getNextGroundPiece () {
         setNextGap()
     }
 }
+function moveScreenElements () {
+    gameSpeed = 0
+    if (dude.vx > 0) {
+        gameSpeed = dude.vx * -1
+    } else {
+        for (let value of currentGroundPieces) {
+            value.vx = 0
+        }
+        for (let value of screenElements) {
+            value.vx = 0
+        }
+    }
+    if (dude.x + 1 > playerCannotMovePast && dude.vx > 0) {
+        for (let value of currentGroundPieces) {
+            value.vx = gameSpeed
+        }
+        for (let value of screenElements) {
+            value.vx = gameSpeed
+        }
+    }
+}
 function createBackgroundSprites () {
+    ground1 = img`
+        6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 
+        7 7 7 7 7 6 6 6 7 7 7 7 7 6 6 6 
+        7 7 7 7 7 7 6 7 7 7 7 7 7 7 6 7 
+        7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 
+        7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 
+        7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 
+        7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 
+        7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 
+        7 6 7 7 7 7 6 7 7 7 7 7 6 7 7 7 
+        7 7 6 7 7 6 7 7 7 6 7 7 6 7 6 7 
+        7 7 6 7 6 6 7 7 6 6 6 7 6 6 6 6 
+        6 7 6 6 6 6 7 6 6 6 6 6 8 6 6 6 
+        8 8 6 6 8 6 6 6 8 6 6 6 8 8 6 6 
+        8 e 6 e e 8 6 6 8 8 6 8 8 8 e 8 
+        8 e e e e e 6 e 8 8 e e 8 e e f 
+        f e e e e f 8 e e 8 e e e e e f 
+        `
     ground2 = img`
         66666666666666666666666666666666
         77777666777776667777766677777666
@@ -495,15 +570,20 @@ function createBackgroundSprites () {
     currentGroundPieces = [aGround]
     setNextGap()
 }
+function playerGetsMushroom () {
+    if (!(canGetWeapon)) {
+        canGetWeapon = true
+        aMushroom.setKind(SpriteKind.MushroomTaken)
+        aMushroom.vy = -75
+        aMushroom.vx = 200
+        aMushroom.ay = 200
+    }
+}
 function checkLevelFromDistance () {
     if (distanceTravelledForLevel > changeLevelAfterDistanceOf) {
         level += 1
         distanceTravelledForLevel = 0
         setLevelDisplay()
-    }
-    if (!(groundHasGaps) && level >= groundHasGapsAfterLevel) {
-        game.showLongText("The ground is breaking up. Press B (E on keyboard) to jump.", DialogLayout.Bottom)
-        groundHasGaps = true
     }
 }
 function checkOnGround () {
@@ -522,27 +602,13 @@ function checkOnGround () {
         }
     }
 }
-function moveGround () {
-    gameSpeed = 0
-    if (dude.vx > 0) {
-        gameSpeed = dude.vx * -1
-    } else {
-        for (let value of currentGroundPieces) {
-            value.vx = 0
-        }
-    }
-    if (dude.x + 1 > playerCannotMovePast && dude.vx > 0) {
-        for (let value of currentGroundPieces) {
-            value.vx = gameSpeed
-        }
-    }
-}
 function setLevelDisplay () {
     levelDisplay.setText("Level: " + level)
     levelDisplay.x = screenWidth / 2
 }
 function setRandomGround () {
     groundLength = randint(2, 10)
+    groundLength = 1
     if (groundLength == 2) {
         aGround = sprites.create(ground2, SpriteKind.Ground)
     } else if (groundLength == 3) {
@@ -561,25 +627,14 @@ function setRandomGround () {
         aGround = sprites.create(ground9, SpriteKind.Ground)
     } else if (groundLength == 10) {
         aGround = sprites.create(ground10, SpriteKind.Ground)
+    } else if (groundLength == 1) {
+        aGround = sprites.create(ground1, SpriteKind.Ground)
     }
     aGround.left = screenWidth
     aGround.bottom = screenHeight
-    aGround.vx = gameSpeed
     currentGroundPieces.push(aGround)
 }
-function setNextGap () {
-    if (groundHasGaps) {
-        gap = randint(gapMinimum, gapMaximum)
-    } else {
-        gap = 0
-    }
-}
-function setPlayerOnGround (ground: Sprite) {
-    dude.bottom = ground.top
-    dude.vx = 0
-    dude.vy = 0
-}
-function checkPlayer () {
+function checkPlayerPosition () {
     if (dude.x > playerCannotMovePast) {
         dude.x = playerCannotMovePast
     } else if (dude.x < playerStartsAt) {
@@ -589,8 +644,49 @@ function checkPlayer () {
         game.over(false)
     }
 }
+function checkPlayerOverlaps () {
+    if (dude.overlapsWith(aMushroom)) {
+        playerGetsMushroom()
+    }
+}
+function setNextGap () {
+    if (groundHasGaps) {
+        gap = randint(gapMinimum, gapMaximum)
+    } else {
+        gap = 0
+    }
+}
+function setMushroom () {
+    aMushroom = sprites.create(img`
+        . . . . . . . . . . . . . . . . 
+        . . . . . . . . . . . . . . . . 
+        . . . . . . . . . . . . . . . . 
+        . . . . . . b b b b . . . . . . 
+        . . . . b b 3 3 3 3 b b . . . . 
+        . . . c b 3 3 3 3 1 1 b c . . . 
+        . . c b 3 3 3 3 3 1 1 1 b c . . 
+        . c b 1 1 1 3 3 3 3 1 1 3 c c . 
+        c b d 1 1 1 3 3 3 3 3 3 3 b b c 
+        c b b d 1 3 3 3 3 3 1 1 1 b b c 
+        c b b b 3 3 1 1 3 3 1 1 d d b c 
+        . c b b b d d 1 1 3 b d d d c . 
+        . . c c b b d d b b b b c c . . 
+        . . . . c c c c c c c c . . . . 
+        . . . . . b b d 1 1 b . . . . . 
+        . . . . . b d d 1 1 b . . . . . 
+        `, SpriteKind.Mushroom)
+    placeOnGround(aMushroom, 30)
+}
+function setPlayerOnGround (ground: Sprite) {
+    dude.bottom = ground.top
+    dude.vx = 0
+    dude.vy = 0
+}
+function checkPlayer () {
+    checkPlayerPosition()
+    checkPlayerOverlaps()
+}
 let groundLength = 0
-let gameSpeed = 0
 let ground10: Image = null
 let ground9: Image = null
 let ground8: Image = null
@@ -600,6 +696,8 @@ let ground5: Image = null
 let ground4: Image = null
 let ground3: Image = null
 let ground2: Image = null
+let ground1: Image = null
+let gameSpeed = 0
 let gap = 0
 let groundMaximumX = 0
 let nextGroundPiece: Sprite = null
@@ -608,6 +706,7 @@ let gapMaximum = 0
 let gapMinimum = 0
 let playerCannotMovePast = 0
 let changeLevelAfterDistanceOf = 0
+let canGetWeapon = false
 let groundHasGaps = false
 let groundHasGapsAfterLevel = 0
 let distanceTravelledForLevel = 0
@@ -615,10 +714,14 @@ let distanceTravelled = 0
 let level = 0
 let screenHeight = 0
 let screenWidth = 0
+let hasWeapon = false
 let levelDisplay: TextSprite = null
 let currentGroundPieces: Sprite[] = []
 let playerStartsAt = 0
 let dying = false
+let screenElements: Sprite[] = []
+let aMushroom: Sprite = null
+let weapon: Sprite = null
 let jumping = false
 let jumpSpeed = 0
 let onGround = false
@@ -631,8 +734,9 @@ let dude: Sprite = null
 setVariables()
 createBackgroundSprites()
 setPlayer()
+setMushroom()
 game.onUpdate(function () {
-    moveGround()
+    moveScreenElements()
     checkGroundOffScreen()
     getNextGroundPiece()
     checkOnGround()
