@@ -5,8 +5,8 @@ enum ActionKind {
 }
 namespace SpriteKind {
     export const Ground = SpriteKind.create()
-    export const Mushroom = SpriteKind.create()
-    export const MushroomTaken = SpriteKind.create()
+    export const Egg = SpriteKind.create()
+    export const EggTaken = SpriteKind.create()
     export const WeaponToTake = SpriteKind.create()
 }
 function animatePlayer () {
@@ -35,24 +35,30 @@ function animatePlayer () {
     character.rule(Predicate.NotMoving, Predicate.FacingLeft)
     )
 }
+function setEgg () {
+    anEgg = sprites.create(img`
+        .........5555..........
+        ......5555555155.......
+        ....555dd51111d551.....
+        ...55ddddd1111111d55...
+        ..55dddddddd111111dd5..
+        ..55ddddddddddd11111d5.
+        .555dddddddddddddd111d5
+        f5555dddddddddddddd11d5
+        f5555dddddddddddddddd55
+        f55555dddddddddddddd555
+        f55555555dddddddddd555f
+        .f555555555dddddddd55f.
+        .f555555555555555555f..
+        ..f555555555555555ff...
+        ...ff55555555555ff.....
+        .....fff55555fff.......
+        ........fffff..........
+        `, SpriteKind.Egg)
+    placeOnGround(anEgg, 30)
+}
 controller.B.onEvent(ControllerButtonEvent.Pressed, function () {
     playerJumps()
-})
-sprites.onOverlap(SpriteKind.MushroomTaken, SpriteKind.Ground, function (sprite, otherSprite) {
-    weapon = sprites.create(img`
-        . . . . . . . . 
-        . . . 5 5 . . . 
-        . . 5 5 5 5 . . 
-        . 5 5 5 5 5 5 . 
-        . f f f f f f . 
-        . . . e 7 . . . 
-        . . . e 7 . . . 
-        . . . e 7 . . . 
-        `, SpriteKind.WeaponToTake)
-    weapon.x = aMushroom.x
-    weapon.bottom = aMushroom.bottom
-    screenElements.push(weapon)
-    aMushroom.destroy(effects.disintegrate, 500)
 })
 function setPlayer () {
     jumping = true
@@ -79,6 +85,30 @@ sprites.onOverlap(SpriteKind.Player, SpriteKind.WeaponToTake, function (sprite, 
     timer.after(1000, function () {
         sprite.say("")
     })
+})
+sprites.onOverlap(SpriteKind.EggTaken, SpriteKind.Ground, function (sprite, otherSprite) {
+    weapon = sprites.create(img`
+        . . . . . . . . . . . . . . . . 
+        . . 5 5 . . . b b b . . . . . . 
+        . 4 4 5 5 5 7 b b b b . . . . . 
+        . f 4 7 7 5 7 b b b b 7 . . . . 
+        . . 5 5 5 5 5 5 5 b 7 f . . . . 
+        . b b 7 7 5 7 7 7 5 f f . . . . 
+        b b b b b 5 7 b 7 5 f . . . . . 
+        b b b b b 5 7 f f 5 . . . . . . 
+        7 b b b b 7 5 f f 5 5 . . . . . 
+        7 7 7 7 7 f 5 f 4 4 5 5 . . . . 
+        f 7 7 7 7 f 5 . f 4 4 5 5 . . . 
+        . f f f f f . . . f 4 4 5 5 . . 
+        . . . . . . . . . . f 4 4 5 5 . 
+        . . . . . . . . . . . f 4 4 5 5 
+        . . . . . . . . . . . . f 4 4 5 
+        . . . . . . . . . . . . . f 4 . 
+        `, SpriteKind.WeaponToTake)
+    weapon.x = anEgg.x
+    weapon.bottom = anEgg.bottom
+    screenElements.push(weapon)
+    anEgg.destroy(effects.disintegrate, 500)
 })
 function placeOnGround (aSprite: Sprite, distanceFromPlayer: number) {
     aSprite.bottom = currentGroundPieces[0].top
@@ -350,15 +380,6 @@ function createBackgroundSprites () {
 controller.right.onEvent(ControllerButtonEvent.Pressed, function () {
     facingRight = true
 })
-function playerGetsMushroom () {
-    if (!(canGetWeapon)) {
-        canGetWeapon = true
-        aMushroom.setKind(SpriteKind.MushroomTaken)
-        aMushroom.vy = -75
-        aMushroom.vx = 200
-        aMushroom.ay = 200
-    }
-}
 function setPlayerImages () {
     idleImagesRight = [img`
         ....45...55555.........
@@ -812,8 +833,8 @@ function checkPlayerPosition () {
     }
 }
 function checkPlayerOverlaps () {
-    if (dude.overlapsWith(aMushroom)) {
-        playerGetsMushroom()
+    if (dude.overlapsWith(anEgg)) {
+        playerGetsEgg()
     }
 }
 function setNextGap () {
@@ -823,26 +844,35 @@ function setNextGap () {
         gap = 0
     }
 }
-function setMushroom () {
-    aMushroom = sprites.create(img`
-        . . . . . . . . . . . . . . . . 
-        . . . . . . . . . . . . . . . . 
-        . . . . . . . . . . . . . . . . 
-        . . . . . . b b b b . . . . . . 
-        . . . . b b 3 3 3 3 b b . . . . 
-        . . . c b 3 3 3 3 1 1 b c . . . 
-        . . c b 3 3 3 3 3 1 1 1 b c . . 
-        . c b 1 1 1 3 3 3 3 1 1 3 c c . 
-        c b d 1 1 1 3 3 3 3 3 3 3 b b c 
-        c b b d 1 3 3 3 3 3 1 1 1 b b c 
-        c b b b 3 3 1 1 3 3 1 1 d d b c 
-        . c b b b d d 1 1 3 b d d d c . 
-        . . c c b b d d b b b b c c . . 
-        . . . . c c c c c c c c . . . . 
-        . . . . . b b d 1 1 b . . . . . 
-        . . . . . b d d 1 1 b . . . . . 
-        `, SpriteKind.Mushroom)
-    placeOnGround(aMushroom, 30)
+function playerGetsEgg () {
+    if (!(canGetWeapon)) {
+        canGetWeapon = true
+        anEgg.setKind(SpriteKind.EggTaken)
+        anEgg.vy = -75
+        anEgg.vx = 200
+        anEgg.ay = 200
+        timer.after(150, function () {
+            anEgg.setImage(img`
+                .........5555..........
+                ......55555ee555.......
+                ....5555dd1eefd555.....
+                ...555dddd11e1111d55...
+                ..555dddddd1e11111d55..
+                ..555dddddde1ee11111d5.
+                .5555dddddded11edd111d5
+                f5555dddddeeddddddd11d5
+                f5555ddddeddddddddddd55
+                f55555dddedddddddddd555
+                f55555555fedddddddd555f
+                .f55555555fdddddddd55f.
+                .f555555555f55555555f..
+                ..f55555555f555555ff...
+                ...ff55555f55555ff.....
+                .....fff55555fff.......
+                ........fffff..........
+                `)
+        })
+    }
 }
 function setPlayerOnGround (ground: Sprite) {
     if (jumping) {
@@ -908,6 +938,8 @@ let distanceTravelled = 0
 let level = 0
 let screenHeight = 0
 let screenWidth = 0
+let screenElements: Sprite[] = []
+let weapon: Sprite = null
 let hasWeapon = false
 let levelDisplay: TextSprite = null
 let currentGroundPieces: Sprite[] = []
@@ -917,9 +949,7 @@ let facingRight = false
 let dying = false
 let onGround = false
 let jumping = false
-let screenElements: Sprite[] = []
-let aMushroom: Sprite = null
-let weapon: Sprite = null
+let anEgg: Sprite = null
 let idleImagesLeft: Image[] = []
 let idleImagesRight: Image[] = []
 let walkingImagesLeft: Image[] = []
@@ -929,7 +959,7 @@ let dude: Sprite = null
 setVariables()
 createBackgroundSprites()
 setPlayer()
-setMushroom()
+setEgg()
 game.onUpdate(function () {
     moveScreenElements()
     checkGroundOffScreen()

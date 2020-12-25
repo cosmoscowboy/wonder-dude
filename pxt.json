@@ -8,7 +8,7 @@
         "character-animations": "github:riknoll/character-animations#v0.3.0",
         "arcade-text": "github:microsoft/arcade-text#v1.3.0",
         "Timers": "github:microsoft/arcade-timers#v1.1.0",
-        "WonderBoyImages": "github:cosmoscowboy/wonderboyimages#master"
+        "WonderBoyImages": "github:cosmoscowboy/wonderboyimages#eec42c0d01ac21f9a0ed8bff29ef0a8fa713aa19"
     },
     "files": [
         "main.blocks",
