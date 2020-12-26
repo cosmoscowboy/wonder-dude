@@ -23,18 +23,6 @@ function animatePlayer () {
     Math.abs(walkingSpeed) * 2,
     character.rule(Predicate.MovingLeft)
     )
-    character.loopFrames(
-    dude,
-    idleImagesRight,
-    Math.abs(walkingSpeed) * 2,
-    character.rule(Predicate.NotMoving, Predicate.FacingRight)
-    )
-    character.loopFrames(
-    dude,
-    idleImagesLeft,
-    Math.abs(walkingSpeed) * 2,
-    character.rule(Predicate.NotMoving, Predicate.FacingLeft)
-    )
 }
 sprites.onOverlap(SpriteKind.Weapon, SpriteKind.Ground, function (sprite, otherSprite) {
     sprite.destroy()
@@ -126,11 +114,15 @@ function placeOnGround (aSprite: Sprite, distanceFromPlayer: number) {
     aSprite.bottom = currentGroundPieces[0].top
     screenElements.push(aSprite)
 }
+function removeScreenElement (aSprite: Sprite) {
+    screenElements.removeAt(screenElements.indexOf(aSprite))
+}
 function setVariables () {
     scene.setBackgroundColor(8)
     screenWidth = scene.screenWidth()
     screenHeight = scene.screenHeight()
     level = 1
+    area = 1
     distanceTravelled = 0
     distanceTravelledForLevel = 0
     groundHasGapsAfterLevel = 3
@@ -272,6 +264,9 @@ function getNextGroundPiece () {
         setRandomGround()
         setNextGap()
     }
+}
+function setItemArrays () {
+	
 }
 function moveScreenElements () {
     gameSpeed = 0
@@ -894,7 +889,8 @@ function checkOnGround () {
     }
 }
 function setLevelDisplay () {
-    levelDisplay.setText("Level: " + level)
+    levelDisplay.setText("" + level + "-" + area)
+    levelDisplay.setMaxFontHeight(2)
     levelDisplay.x = screenWidth / 2
 }
 function setRandomGround () {
@@ -949,6 +945,7 @@ function setNextGap () {
 }
 function playerGetsEgg () {
     if (!(canGetWeapon)) {
+        removeScreenElement(anEgg)
         anEgg.setKind(SpriteKind.EggTaken)
         anEgg.setImage(img`
             .........5555..........
@@ -970,7 +967,7 @@ function playerGetsEgg () {
             ........fffff..........
             `)
         anEgg.vy = -75
-        anEgg.vx = 400
+        anEgg.vx = 50
         anEgg.ay = 200
         canGetWeapon = true
     }
@@ -1087,6 +1084,7 @@ let jumpingImageLeft: Image = null
 let jumpingImageRight: Image = null
 let throwingImagesLeft: Image[] = []
 let throwingImagesRight: Image[] = []
+let idleImagesLeft: Image[] = []
 let ground10: Image = null
 let ground9: Image = null
 let ground8: Image = null
@@ -1115,6 +1113,7 @@ let groundHasGaps = false
 let groundHasGapsAfterLevel = 0
 let distanceTravelledForLevel = 0
 let distanceTravelled = 0
+let area = 0
 let level = 0
 let screenHeight = 0
 let screenWidth = 0
@@ -1124,6 +1123,7 @@ let hasWeapon = false
 let levelDisplay: TextSprite = null
 let currentGroundPieces: Sprite[] = []
 let playerStartsAt = 0
+let idleImagesRight: Image[] = []
 let weaponLastThrowTime = 0
 let weaponThrownEveryMs = 0
 let jumpSpeed = 0
@@ -1133,8 +1133,6 @@ let dying = false
 let onGround = false
 let jumping = false
 let anEgg: Sprite = null
-let idleImagesLeft: Image[] = []
-let idleImagesRight: Image[] = []
 let walkingImagesLeft: Image[] = []
 let walkingSpeed = 0
 let walkingImagesRight: Image[] = []
