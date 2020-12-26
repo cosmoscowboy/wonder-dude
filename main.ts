@@ -59,7 +59,7 @@ function setEgg () {
         .....fff55555fff.......
         ........fffff..........
         `, SpriteKind.Egg)
-    placeOnGround(anEgg, 30)
+    placeOnGround(anEgg, scene.screenWidth())
 }
 controller.B.onEvent(ControllerButtonEvent.Pressed, function () {
     playerJumps()
@@ -70,7 +70,7 @@ function setPlayer () {
     dying = false
     facingRight = true
     throwingWeapon = false
-    jumpSpeed = -155
+    jumpSpeed = -200
     weaponThrownEveryMs = 300
     weaponLastThrowTime = game.runtime()
     setPlayerImages()
@@ -80,7 +80,7 @@ function setPlayer () {
     dude.x = playerStartsAt
     setPlayerOnGround(currentGroundPieces[0])
     animatePlayer()
-    dude.ay = 250
+    dude.ay = 400
     levelDisplay = textsprite.create("")
     levelDisplay.top = 5
     setLevelDisplay()
@@ -255,17 +255,17 @@ function defineImages () {
         . . . . . b b 7 7 f . . . . . . 
         `]
     weaponImagesLeft = []
-    for (let value of weaponImagesRight) {
-        anImage = value.clone()
+    for (let value2 of weaponImagesRight) {
+        anImage = value2.clone()
         anImage.flipX()
         weaponImagesLeft.push(anImage)
     }
 }
 function getNextGroundPiece () {
     groundMaximumX = 0
-    for (let value2 of currentGroundPieces) {
-        if (value2.right > groundMaximumX) {
-            groundMaximumX = value2.right
+    for (let value22 of currentGroundPieces) {
+        if (value22.right > groundMaximumX) {
+            groundMaximumX = value22.right
         }
     }
     if (groundMaximumX < screenWidth - gap) {
@@ -949,7 +949,7 @@ function setNextGap () {
 }
 function playerGetsEgg () {
     if (!(canGetWeapon)) {
-        canGetWeapon = true
+        anEgg.setKind(SpriteKind.EggTaken)
         anEgg.setImage(img`
             .........5555..........
             ......55555ee555.......
@@ -969,10 +969,10 @@ function playerGetsEgg () {
             .....fff55555fff.......
             ........fffff..........
             `)
-        anEgg.setKind(SpriteKind.EggTaken)
         anEgg.vy = -75
         anEgg.vx = 400
         anEgg.ay = 200
+        canGetWeapon = true
     }
 }
 function playerThrowsWeapon () {
