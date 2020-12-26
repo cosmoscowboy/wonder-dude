@@ -8,6 +8,7 @@ namespace SpriteKind {
     export const Egg = SpriteKind.create()
     export const EggTaken = SpriteKind.create()
     export const WeaponToTake = SpriteKind.create()
+    export const Weapon = SpriteKind.create()
 }
 function animatePlayer () {
     character.loopFrames(
@@ -35,6 +36,9 @@ function animatePlayer () {
     character.rule(Predicate.NotMoving, Predicate.FacingLeft)
     )
 }
+sprites.onOverlap(SpriteKind.Weapon, SpriteKind.Ground, function (sprite, otherSprite) {
+    sprite.destroy()
+})
 function setEgg () {
     anEgg = sprites.create(img`
         .........5555..........
@@ -65,7 +69,10 @@ function setPlayer () {
     onGround = false
     dying = false
     facingRight = true
-    jumpSpeed = -125
+    throwingWeapon = false
+    jumpSpeed = -155
+    weaponThrownEveryMs = 300
+    weaponLastThrowTime = game.runtime()
     setPlayerImages()
     dude = sprites.create(idleImagesRight[0], SpriteKind.Player)
     walkingSpeed = 75
@@ -85,6 +92,9 @@ sprites.onOverlap(SpriteKind.Player, SpriteKind.WeaponToTake, function (sprite, 
     timer.after(1000, function () {
         sprite.say("")
     })
+})
+controller.A.onEvent(ControllerButtonEvent.Pressed, function () {
+    playerThrowsWeapon()
 })
 sprites.onOverlap(SpriteKind.EggTaken, SpriteKind.Ground, function (sprite, otherSprite) {
     weapon = sprites.create(img`
@@ -129,7 +139,7 @@ function setVariables () {
     hasWeapon = false
     changeLevelAfterDistanceOf = 50
     playerStartsAt = 20
-    playerCannotMovePast = 60
+    playerCannotMovePast = 45
     gapMinimum = 16
     gapMaximum = 55
     screenElements = []
@@ -158,6 +168,99 @@ function checkGroundOffScreen () {
 controller.left.onEvent(ControllerButtonEvent.Pressed, function () {
     facingRight = false
 })
+function defineImages () {
+    carrotImage = img`
+        . 7 f . . f . 7 
+        . f 7 f 7 f 7 f 
+        . . f 7 f 7 f . 
+        . f 4 5 f 7 5 . 
+        f 4 4 5 5 5 5 5 
+        f 4 4 4 5 5 5 5 
+        f 4 4 5 5 1 1 1 
+        f 4 4 4 5 5 5 5 
+        f 4 4 5 5 1 1 1 
+        f 4 4 4 5 5 5 5 
+        . f 4 5 5 1 1 . 
+        . f 4 4 5 5 5 . 
+        . . f 4 5 5 . . 
+        . . . f 5 . . . 
+        `
+    weaponImagesRight = [img`
+        . . . . . . . . . . . . . . . . 
+        . . 5 5 . . . b b b . . . . . . 
+        . 4 4 5 5 5 7 b b b b . . . . . 
+        . f 4 7 7 5 7 b b b b 7 . . . . 
+        . . 5 5 5 5 5 5 5 b 7 f . . . . 
+        . b b 7 7 5 7 7 7 5 f f . . . . 
+        b b b b b 5 7 b 7 5 f . . . . . 
+        b b b b b 5 7 f f 5 . . . . . . 
+        7 b b b b 7 5 f f 5 5 . . . . . 
+        7 7 7 7 7 f 5 f 4 4 5 5 . . . . 
+        f 7 7 7 7 f 5 . f 4 4 5 5 . . . 
+        . f f f f f . . . f 4 4 5 5 . . 
+        . . . . . . . . . . f 4 4 5 5 . 
+        . . . . . . . . . . . f 4 4 5 5 
+        . . . . . . . . . . . . f 4 4 5 
+        . . . . . . . . . . . . . f 4 . 
+        `, img`
+        . . . . . f 7 7 b b . . . . . . 
+        . . . . f 7 7 b b b b . f 4 . . 
+        . . . . f 7 7 b b b b 5 4 4 5 . 
+        . . . . f 7 7 b b b 7 5 7 5 5 . 
+        . . . . f 7 7 b b b 7 5 7 5 . . 
+        . . . . f f f 7 5 5 5 5 5 5 . . 
+        . . . . . 5 5 5 7 7 7 5 7 7 . . 
+        . . . . . . f f f b 7 5 b b b . 
+        . . . . . f 4 f f 7 7 5 b b b . 
+        . . . . f 4 4 5 5 5 5 b b b b . 
+        . . . f 4 4 5 5 . f f 7 b b . . 
+        . . f 4 4 5 5 . . . f f 7 . . . 
+        . f 4 4 5 5 . . . . . . . . . . 
+        f 4 4 5 5 . . . . . . . . . . . 
+        4 4 5 5 . . . . . . . . . . . . 
+        . 5 5 . . . . . . . . . . . . . 
+        `, img`
+        . . . . . . . . . . . . . . . . 
+        . 4 f . . . . . . . . . . . . . 
+        5 4 4 f . . . . . . . . . . . . 
+        5 5 4 4 f . . . . . . . . . . . 
+        . 5 5 4 4 f . . . . . . . . . . 
+        . . 5 5 4 4 f . . . f f f f f . 
+        . . . 5 5 4 4 f . 5 f 7 7 7 7 f 
+        . . . . 5 5 4 4 f 5 f 7 7 7 7 7 
+        . . . . . 5 5 f f 5 7 b b b b 7 
+        . . . . . . 5 f f 7 5 b b b b b 
+        . . . . . f 5 7 b 7 5 b b b b b 
+        . . . . f f 5 7 7 7 5 7 7 b b . 
+        . . . . f 7 b 5 5 5 5 5 5 5 . . 
+        . . . . 7 b b b b 7 5 7 7 4 f . 
+        . . . . . b b b b 7 5 5 5 4 4 . 
+        . . . . . . b b b . . . 5 5 . . 
+        `, img`
+        . . . . . . . . . . . . 5 5 . . 
+        . . . . . . . . . . . 5 5 4 4 . 
+        . . . . . . . . . . 5 5 4 4 f . 
+        . . . . . . . . . 5 5 4 4 f . . 
+        . . 7 f f . . . 5 5 4 4 f . . . 
+        . b b 7 f f . 5 5 4 4 f . . . . 
+        b b b b 5 5 5 5 4 4 f . . . . . 
+        b b b 5 7 7 f f 4 f . . . . . . 
+        b b b 5 7 b f f f . . . . . . . 
+        . 7 7 5 7 7 7 5 5 5 . . . . . . 
+        . 5 5 5 5 5 5 7 f f f . . . . . 
+        . 5 7 5 7 b b b 7 7 f . . . . . 
+        5 5 7 5 7 b b b 7 7 f . . . . . 
+        5 4 4 5 b b b b 7 7 f . . . . . 
+        . 4 f . b b b b 7 7 f . . . . . 
+        . . . . . b b 7 7 f . . . . . . 
+        `]
+    weaponImagesLeft = []
+    for (let value of weaponImagesRight) {
+        anImage = value.clone()
+        anImage.flipX()
+        weaponImagesLeft.push(anImage)
+    }
+}
 function getNextGroundPiece () {
     groundMaximumX = 0
     for (let value2 of currentGroundPieces) {
@@ -847,47 +950,120 @@ function setNextGap () {
 function playerGetsEgg () {
     if (!(canGetWeapon)) {
         canGetWeapon = true
+        anEgg.setImage(img`
+            .........5555..........
+            ......55555ee555.......
+            ....5555dd1eefd555.....
+            ...555dddd11e1111d55...
+            ..555dddddd1e11111d55..
+            ..555dddddde1ee11111d5.
+            .5555dddddded11edd111d5
+            f5555dddddeeddddddd11d5
+            f5555ddddeddddddddddd55
+            f55555dddedddddddddd555
+            f55555555fedddddddd555f
+            .f55555555fdddddddd55f.
+            .f555555555f55555555f..
+            ..f55555555f555555ff...
+            ...ff55555f55555ff.....
+            .....fff55555fff.......
+            ........fffff..........
+            `)
         anEgg.setKind(SpriteKind.EggTaken)
         anEgg.vy = -75
-        anEgg.vx = 200
+        anEgg.vx = 400
         anEgg.ay = 200
-        timer.after(150, function () {
-            anEgg.setImage(img`
-                .........5555..........
-                ......55555ee555.......
-                ....5555dd1eefd555.....
-                ...555dddd11e1111d55...
-                ..555dddddd1e11111d55..
-                ..555dddddde1ee11111d5.
-                .5555dddddded11edd111d5
-                f5555dddddeeddddddd11d5
-                f5555ddddeddddddddddd55
-                f55555dddedddddddddd555
-                f55555555fedddddddd555f
-                .f55555555fdddddddd55f.
-                .f555555555f55555555f..
-                ..f55555555f555555ff...
-                ...ff55555f55555ff.....
-                .....fff55555fff.......
-                ........fffff..........
-                `)
-        })
+    }
+}
+function playerThrowsWeapon () {
+    if (hasWeapon) {
+        if (weaponLastThrowTime < game.runtime()) {
+            throwingWeapon = true
+            character.setCharacterAnimationsEnabled(dude, false)
+            weaponLastThrowTime = game.runtime() + weaponThrownEveryMs
+            weaponSprite = sprites.create(img`
+                . . . . . . . . . . . . . . . . 
+                . . . . . . . . . . . . . . . . 
+                . . . . . . . . . . . . . . . . 
+                . . . . . . . . . . . . . . . . 
+                . . . . . . . . . . . . . . . . 
+                . . . . . . . . . . . . . . . . 
+                . . . . . . . . . . . . . . . . 
+                . . . . . . . . . . . . . . . . 
+                . . . . . . . . . . . . . . . . 
+                . . . . . . . . . . . . . . . . 
+                . . . . . . . . . . . . . . . . 
+                . . . . . . . . . . . . . . . . 
+                . . . . . . . . . . . . . . . . 
+                . . . . . . . . . . . . . . . . 
+                . . . . . . . . . . . . . . . . 
+                . . . . . . . . . . . . . . . . 
+                `, SpriteKind.Weapon)
+            weaponSprite.y = dude.y - 10
+            if (facingRight) {
+                animation.runImageAnimation(
+                dude,
+                throwingImagesRight,
+                200,
+                false
+                )
+                weaponSprite.x = dude.x - 7
+                animation.runImageAnimation(
+                weaponSprite,
+                weaponImagesRight,
+                150,
+                true
+                )
+                timer.after(100, function () {
+                    weaponSprite.ay = 200
+                    weaponSprite.vx = 125
+                })
+            } else {
+                animation.runImageAnimation(
+                dude,
+                throwingImagesLeft,
+                200,
+                false
+                )
+                weaponSprite.x = dude.x + 7
+                animation.runImageAnimation(
+                weaponSprite,
+                weaponImagesLeft,
+                150,
+                true
+                )
+                timer.after(100, function () {
+                    weaponSprite.ay = 200
+                    weaponSprite.vx = -125
+                })
+            }
+            timer.after(350, function () {
+                throwingWeapon = false
+                character.setCharacterAnimationsEnabled(dude, true)
+                setIdleImage()
+            })
+        }
     }
 }
 function setPlayerOnGround (ground: Sprite) {
-    if (jumping) {
-        if (facingRight) {
-            dude.setImage(idleImagesRight[0])
-        } else {
-            dude.setImage(idleImagesLeft[0])
+    if (!(throwingWeapon)) {
+        if (jumping) {
+            setIdleImage()
         }
+        character.setCharacterAnimationsEnabled(dude, true)
     }
-    character.setCharacterAnimationsEnabled(dude, true)
     onGround = true
     jumping = false
     dude.bottom = ground.top
     dude.vx = 0
     dude.vy = 0
+}
+function setIdleImage () {
+    if (facingRight) {
+        dude.setImage(idleImagesRight[0])
+    } else {
+        dude.setImage(idleImagesLeft[0])
+    }
 }
 function playerJumps () {
     if (onGround) {
@@ -905,12 +1081,12 @@ function checkPlayer () {
     checkPlayerPosition()
     checkPlayerOverlaps()
 }
+let weaponSprite: Sprite = null
 let groundLength = 0
 let jumpingImageLeft: Image = null
 let jumpingImageRight: Image = null
 let throwingImagesLeft: Image[] = []
 let throwingImagesRight: Image[] = []
-let anImage: Image = null
 let ground10: Image = null
 let ground9: Image = null
 let ground8: Image = null
@@ -924,6 +1100,10 @@ let ground1: Image = null
 let gameSpeed = 0
 let gap = 0
 let groundMaximumX = 0
+let anImage: Image = null
+let weaponImagesLeft: Image[] = []
+let weaponImagesRight: Image[] = []
+let carrotImage: Image = null
 let nextGroundPiece: Sprite = null
 let aGround: Sprite = null
 let gapMaximum = 0
@@ -944,7 +1124,10 @@ let hasWeapon = false
 let levelDisplay: TextSprite = null
 let currentGroundPieces: Sprite[] = []
 let playerStartsAt = 0
+let weaponLastThrowTime = 0
+let weaponThrownEveryMs = 0
 let jumpSpeed = 0
+let throwingWeapon = false
 let facingRight = false
 let dying = false
 let onGround = false
@@ -960,6 +1143,7 @@ setVariables()
 createBackgroundSprites()
 setPlayer()
 setEgg()
+defineImages()
 game.onUpdate(function () {
     moveScreenElements()
     checkGroundOffScreen()
