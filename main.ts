@@ -10,6 +10,18 @@ namespace SpriteKind {
     export const WeaponToTake = SpriteKind.create()
     export const Weapon = SpriteKind.create()
 }
+namespace NumProp {
+    export const ObjectPoints = NumProp.create()
+}
+namespace ImageProp {
+    export const ObjectImage = ImageProp.create()
+}
+namespace AnyProp {
+    export const ObjectPositionArray = AnyProp.create()
+}
+/**
+ * Top line of player jump 22 (jumps 50 pixels)
+ */
 function animatePlayer () {
     character.loopFrames(
     dude,
@@ -23,6 +35,10 @@ function animatePlayer () {
     Math.abs(walkingSpeed) * 2,
     character.rule(Predicate.MovingLeft)
     )
+}
+function increaseDistanceExplored (distance: number) {
+    distanceExplored += distance
+    distanceExploredForLevel += distance
 }
 sprites.onOverlap(SpriteKind.Weapon, SpriteKind.Ground, function (sprite, otherSprite) {
     sprite.destroy()
@@ -123,8 +139,8 @@ function setVariables () {
     screenHeight = scene.screenHeight()
     level = 1
     area = 1
-    distanceTravelled = 0
-    distanceTravelledForLevel = 0
+    distanceExplored = 0
+    distanceExploredForLevel = 0
     groundHasGapsAfterLevel = 3
     groundHasGaps = false
     canGetWeapon = false
@@ -136,11 +152,64 @@ function setVariables () {
     gapMaximum = 55
     screenElements = []
 }
+function setFood () {
+    foodObjects = []
+    foodImages = [img`
+        . . . . 5 5 5 4 . . . . . . . . 
+        5 5 5 5 5 5 4 5 . . . . . . . . 
+        5 5 5 5 4 4 4 5 1 . . . . . . . 
+        4 4 4 5 5 5 5 5 5 1 1 . . . . . 
+        . f 4 5 4 5 5 4 5 5 5 1 1 1 5 5 
+        . f 5 5 4 5 5 5 4 4 5 5 5 5 5 . 
+        . f 5 5 5 4 5 5 5 4 4 5 5 5 5 . 
+        . f 5 5 5 5 4 5 5 5 5 4 5 5 f . 
+        . . f 5 5 5 5 4 5 5 5 5 1 1 5 . 
+        . . f 5 5 5 5 1 5 5 5 5 5 5 f . 
+        . . . f 5 5 5 5 5 5 5 5 5 f . . 
+        . . . . f f 5 5 5 4 f f f . . . 
+        . . . . . . f f f f . . . . . . 
+        `, img`
+        . . . 6 . . . 7 7 
+        . . . . 6 6 7 7 6 
+        . . . . 6 . 6 6 . 
+        . e e 5 e 4 2 2 . 
+        e e 5 4 e 2 1 2 2 
+        e 2 2 5 e 2 2 1 2 
+        e 2 2 2 2 2 2 1 2 
+        e 2 2 2 2 2 2 2 2 
+        e e 2 2 2 2 2 2 e 
+        f e e 2 2 2 1 2 f 
+        . f e e e e 2 f . 
+        . . f f f f f . . 
+        `, img`
+        . 7 f . . f . 7 
+        . f 7 f 7 f 7 f 
+        . . f 7 f 7 f . 
+        . f 4 5 f 7 5 . 
+        f 4 4 5 5 5 5 5 
+        f 4 4 4 5 5 5 5 
+        f 4 4 5 5 1 1 1 
+        f 4 4 4 5 5 5 5 
+        f 4 4 5 5 1 1 1 
+        f 4 4 4 5 5 5 5 
+        . f 4 5 5 1 1 . 
+        . f 4 4 5 5 5 . 
+        . . f 4 5 5 . . 
+        . . . f 5 . . . 
+        `]
+    foodPoints = [50, 50, 100]
+    foodPositionsLevel1 = [[[160, -20, 22]], [[160, -20, 22]], [[160, -20, 22]]]
+    for (let index = 0; index <= foodImages.length - 1; index++) {
+        foodObject = blockObject.create()
+        blockObject.setImageProperty(foodObject, ImageProp.ObjectImage, foodImages[index])
+        blockObject.setNumberProperty(foodObject, NumProp.ObjectPoints, foodPoints[index])
+        blockObject.setAnyProperty(foodObject, AnyProp.ObjectPositionArray, foodPositionsLevel1[index])
+        foodObjects.push(foodObject)
+    }
+}
 function checkGroundOffScreen () {
     for (let value of currentGroundPieces) {
         if (value.right < 0) {
-            distanceTravelled += value.width
-            distanceTravelledForLevel += value.width
             currentGroundPieces.removeAt(currentGroundPieces.indexOf(value))
             value.destroy()
         }
@@ -160,51 +229,6 @@ controller.left.onEvent(ControllerButtonEvent.Pressed, function () {
     facingRight = false
 })
 function defineImages () {
-    carrotImage = img`
-        . 7 f . . f . 7 
-        . f 7 f 7 f 7 f 
-        . . f 7 f 7 f . 
-        . f 4 5 f 7 5 . 
-        f 4 4 5 5 5 5 5 
-        f 4 4 4 5 5 5 5 
-        f 4 4 5 5 1 1 1 
-        f 4 4 4 5 5 5 5 
-        f 4 4 5 5 1 1 1 
-        f 4 4 4 5 5 5 5 
-        . f 4 5 5 1 1 . 
-        . f 4 4 5 5 5 . 
-        . . f 4 5 5 . . 
-        . . . f 5 . . . 
-        `
-    appleImage = img`
-        . . . 6 . . . 7 7 
-        . . . . 6 6 7 7 6 
-        . . . . 6 . 6 6 . 
-        . e e 5 e 4 2 2 . 
-        e e 5 4 e 2 1 2 2 
-        e 2 2 5 e 2 2 1 2 
-        e 2 2 2 2 2 2 1 2 
-        e 2 2 2 2 2 2 2 2 
-        e e 2 2 2 2 2 2 e 
-        f e e 2 2 2 1 2 f 
-        . f e e e e 2 f . 
-        . . f f f f f . . 
-        `
-    bananaImage = img`
-        . . . . 5 5 5 4 . . . . . . . . 
-        5 5 5 5 5 5 4 5 . . . . . . . . 
-        5 5 5 5 4 4 4 5 1 . . . . . . . 
-        4 4 4 5 5 5 5 5 5 1 1 . . . . . 
-        . f 4 5 4 5 5 4 5 5 5 1 1 1 5 5 
-        . f 5 5 4 5 5 5 4 4 5 5 5 5 5 . 
-        . f 5 5 5 4 5 5 5 4 4 5 5 5 5 . 
-        . f 5 5 5 5 4 5 5 5 5 4 5 5 f . 
-        . . f 5 5 5 5 4 5 5 5 5 1 1 5 . 
-        . . f 5 5 5 5 1 5 5 5 5 5 5 f . 
-        . . . f 5 5 5 5 5 5 5 5 5 f . . 
-        . . . . f f 5 5 5 4 f f f . . . 
-        . . . . . . f f f f . . . . . . 
-        `
     weaponImagesRight = [img`
         . . . . . . . . . . . . . . . . 
         . . 5 5 . . . b b b . . . . . . 
@@ -292,9 +316,6 @@ function getNextGroundPiece () {
         setRandomGround()
         setNextGap()
     }
-}
-function setItemArrays () {
-	
 }
 function moveScreenElements () {
     gameSpeed = 0
@@ -501,6 +522,7 @@ function createBackgroundSprites () {
     aGround = sprites.create(ground10, SpriteKind.Ground)
     aGround.bottom = screenHeight
     currentGroundPieces = [aGround]
+    increaseDistanceExplored(aGround.width)
     setNextGap()
 }
 controller.right.onEvent(ControllerButtonEvent.Pressed, function () {
@@ -896,9 +918,9 @@ function setPlayerImages () {
     jumpingImageLeft.flipX()
 }
 function checkLevelFromDistance () {
-    if (distanceTravelledForLevel > changeLevelAfterDistanceOf) {
+    if (distanceExploredForLevel > changeLevelAfterDistanceOf) {
         level += 1
-        distanceTravelledForLevel = 0
+        distanceExploredForLevel = 0
         setLevelDisplay()
     }
 }
@@ -948,9 +970,10 @@ function setRandomGround () {
     aGround.left = screenWidth
     aGround.bottom = screenHeight
     currentGroundPieces.push(aGround)
+    increaseDistanceExplored(aGround.width)
 }
 function checkPlayerPosition () {
-    dude.say(Math.idiv(dude.top, 1))
+    dude.say(convertToText(distanceExplored))
     if (dude.x > playerCannotMovePast) {
         dude.x = playerCannotMovePast
     } else if (dude.x < playerStartsAt) {
@@ -1130,11 +1153,13 @@ let groundMaximumX = 0
 let anImage: Image = null
 let weaponImagesLeft: Image[] = []
 let weaponImagesRight: Image[] = []
-let bananaImage: Image = null
-let appleImage: Image = null
-let carrotImage: Image = null
 let nextGroundPiece: Sprite = null
 let aGround: Sprite = null
+let foodObject: blockObject.BlockObject = null
+let foodPositionsLevel1: number[][][] = []
+let foodPoints: number[] = []
+let foodImages: Image[] = []
+let foodObjects: blockObject.BlockObject[] = []
 let gapMaximum = 0
 let gapMinimum = 0
 let playerCannotMovePast = 0
@@ -1142,8 +1167,6 @@ let changeLevelAfterDistanceOf = 0
 let canGetWeapon = false
 let groundHasGaps = false
 let groundHasGapsAfterLevel = 0
-let distanceTravelledForLevel = 0
-let distanceTravelled = 0
 let area = 0
 let level = 0
 let screenHeight = 0
@@ -1164,11 +1187,14 @@ let dying = false
 let onGround = false
 let jumping = false
 let anEgg: Sprite = null
+let distanceExploredForLevel = 0
+let distanceExplored = 0
 let walkingImagesLeft: Image[] = []
 let walkingSpeed = 0
 let walkingImagesRight: Image[] = []
 let dude: Sprite = null
 setVariables()
+setFood()
 createBackgroundSprites()
 setPlayer()
 setEgg()
