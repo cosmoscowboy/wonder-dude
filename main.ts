@@ -141,7 +141,6 @@ function checkGroundOffScreen () {
         if (value.right < 0) {
             distanceTravelled += value.width
             distanceTravelledForLevel += value.width
-            dude.say(distanceTravelled)
             currentGroundPieces.removeAt(currentGroundPieces.indexOf(value))
             value.destroy()
         }
@@ -176,6 +175,35 @@ function defineImages () {
         . f 4 4 5 5 5 . 
         . . f 4 5 5 . . 
         . . . f 5 . . . 
+        `
+    appleImage = img`
+        . . . 6 . . . 7 7 
+        . . . . 6 6 7 7 6 
+        . . . . 6 . 6 6 . 
+        . e e 5 e 4 2 2 . 
+        e e 5 4 e 2 1 2 2 
+        e 2 2 5 e 2 2 1 2 
+        e 2 2 2 2 2 2 1 2 
+        e 2 2 2 2 2 2 2 2 
+        e e 2 2 2 2 2 2 e 
+        f e e 2 2 2 1 2 f 
+        . f e e e e 2 f . 
+        . . f f f f f . . 
+        `
+    bananaImage = img`
+        . . . . 5 5 5 4 . . . . . . . . 
+        5 5 5 5 5 5 4 5 . . . . . . . . 
+        5 5 5 5 4 4 4 5 1 . . . . . . . 
+        4 4 4 5 5 5 5 5 5 1 1 . . . . . 
+        . f 4 5 4 5 5 4 5 5 5 1 1 1 5 5 
+        . f 5 5 4 5 5 5 4 4 5 5 5 5 5 . 
+        . f 5 5 5 4 5 5 5 4 4 5 5 5 5 . 
+        . f 5 5 5 5 4 5 5 5 5 4 5 5 f . 
+        . . f 5 5 5 5 4 5 5 5 5 1 1 5 . 
+        . . f 5 5 5 5 1 5 5 5 5 5 5 f . 
+        . . . f 5 5 5 5 5 5 5 5 5 f . . 
+        . . . . f f 5 5 5 4 f f f . . . 
+        . . . . . . f f f f . . . . . . 
         `
     weaponImagesRight = [img`
         . . . . . . . . . . . . . . . . 
@@ -922,6 +950,7 @@ function setRandomGround () {
     currentGroundPieces.push(aGround)
 }
 function checkPlayerPosition () {
+    dude.say(Math.idiv(dude.top, 1))
     if (dude.x > playerCannotMovePast) {
         dude.x = playerCannotMovePast
     } else if (dude.x < playerStartsAt) {
@@ -1101,6 +1130,8 @@ let groundMaximumX = 0
 let anImage: Image = null
 let weaponImagesLeft: Image[] = []
 let weaponImagesRight: Image[] = []
+let bananaImage: Image = null
+let appleImage: Image = null
 let carrotImage: Image = null
 let nextGroundPiece: Sprite = null
 let aGround: Sprite = null
