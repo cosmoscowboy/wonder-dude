@@ -9,6 +9,7 @@ namespace SpriteKind {
     export const EggTaken = SpriteKind.create()
     export const WeaponToTake = SpriteKind.create()
     export const Weapon = SpriteKind.create()
+    export const Points = SpriteKind.create()
 }
 namespace NumProp {
     export const ObjectPoints = NumProp.create()
@@ -67,6 +68,8 @@ controller.B.onEvent(ControllerButtonEvent.Pressed, function () {
     playerJumps()
 })
 function setPlayer () {
+    info.setScore(0)
+    info.setLife(3)
     jumping = true
     onGround = false
     dying = false
@@ -107,7 +110,7 @@ function spawnFood () {
             sprites.setDataNumber(foodSprite, dataPoints, foodPoints[foodType])
             foodSprite.x = screenWidth + foodLocationSet[2]
             foodSprite.bottom = foodLocationSet[3]
-            screenElements.push(foodSprite)
+            addScreenElement(foodSprite)
         }
     }
 }
@@ -135,14 +138,14 @@ sprites.onOverlap(SpriteKind.EggTaken, SpriteKind.Ground, function (sprite, othe
         `, SpriteKind.WeaponToTake)
     weapon.x = anEgg.x
     weapon.bottom = anEgg.bottom
-    screenElements.push(weapon)
+    addScreenElement(weapon)
     anEgg.destroy(effects.disintegrate, 500)
 })
 function placeOnGround (aSprite: Sprite, distanceFromPlayer: number) {
     aSprite.bottom = currentGroundPieces[0].top
     aSprite.x = dude.x + Math.abs(distanceFromPlayer)
     aSprite.bottom = currentGroundPieces[0].top
-    screenElements.push(aSprite)
+    addScreenElement(aSprite)
 }
 function removeScreenElement (aSprite: Sprite) {
     screenElements.removeAt(screenElements.indexOf(aSprite))
@@ -160,8 +163,8 @@ function setVariables () {
     canGetWeapon = false
     hasWeapon = false
     changeLevelAfterDistanceOf = 50
-    playerStartsAt = 20
-    playerCannotMovePast = 45
+    playerStartsAt = 15
+    playerCannotMovePast = 40
     gapMinimum = 16
     gapMaximum = 55
     screenElements = []
@@ -211,7 +214,7 @@ function setFood () {
         . . . f 5 . . . 
         `]
     foodPoints = [50, 50, 100]
-    foodLocations = [[[160, 0, -20, 48], [224, 1, -20, 104]], [[160, 0, -20, 48], [224, 1, -20, 104]]]
+    foodLocations = [[[165, 0, -20, 48], [224, 1, -20, 104]], [[160, 0, -20, 48], [224, 1, -20, 104]]]
     dataPoints = "points"
 }
 function checkGroundOffScreen () {
@@ -313,6 +316,51 @@ function defineImages () {
         anImage.flipX()
         weaponImagesLeft.push(anImage)
     }
+    pointsImages = [img`
+        . f f f f f f . . . . . . 
+        f 5 5 5 5 5 f . . . . . . 
+        f 5 5 f f f f . f f f . . 
+        f 5 5 f f f . f 5 5 5 f . 
+        f 5 5 5 5 5 f f f f 5 5 f 
+        f f f f f 5 5 f f f 5 5 f 
+        f f f f f 5 5 f f f 5 5 f 
+        f 5 5 f f 5 5 f f f 5 5 f 
+        f f 5 5 5 5 f f 5 5 5 f . 
+        . f f f f f . . f f f . . 
+        `, img`
+        . . f f f . . . . . . . . . . 
+        . f 5 5 f . . . . . . . . . . 
+        f 5 5 5 f . f f f . f f f . . 
+        f f 5 5 f f 5 5 5 f 5 5 5 f . 
+        . f 5 5 f 5 f f 5 5 f f 5 5 f 
+        . f 5 5 f 5 f f 5 5 f f 5 5 f 
+        . f 5 5 f 5 f f 5 5 f f 5 5 f 
+        . f 5 5 f 5 f f 5 5 f f 5 5 f 
+        . f 5 5 f f 5 5 5 f 5 5 5 f . 
+        . f f f f . f f f . f f f . . 
+        `, img`
+        . . f f f f . . . . . . . . . . . 
+        . f 5 5 5 5 f f . . . . . . . . . 
+        f 5 5 f f 5 5 f f f f . f f f . . 
+        f f f f 5 5 5 f 5 5 5 f 5 5 5 f . 
+        . f f 5 5 5 f 5 f f 5 5 f f 5 5 f 
+        f f 5 5 f f f 5 f f 5 5 f f 5 5 f 
+        f 5 5 f f f f 5 f f 5 5 f f 5 5 f 
+        f 5 5 f f f f 5 f f 5 5 f f 5 5 f 
+        f 5 5 5 5 5 5 f 5 5 5 f 5 5 5 f . 
+        . f f f f f f . f f f . f f f . . 
+        `, img`
+        . f f f f f f . . . . . . . . . . 
+        f 5 5 5 5 5 f . . . . . . . . . . 
+        f 5 5 f f f f . f f f . f f f . . 
+        f 5 5 f f f . f 5 5 5 f 5 5 5 f . 
+        f 5 5 5 5 5 f f f f 5 5 f f 5 5 f 
+        f f f f f 5 5 f f f 5 5 f f 5 5 f 
+        f f f f f 5 5 f f f 5 5 f f 5 5 f 
+        f 5 5 f f 5 5 f f f 5 5 f f 5 5 f 
+        f f 5 5 5 5 f f 5 5 5 f 5 5 5 f . 
+        . f f f f f . . f f f . f f f . . 
+        `]
 }
 function getNextGroundPiece () {
     groundMaximumX = 0
@@ -997,6 +1045,10 @@ function checkPlayerOverlaps () {
         playerGetsEgg()
     }
 }
+sprites.onOverlap(SpriteKind.Player, SpriteKind.Food, function (sprite, otherSprite) {
+    showPoints(otherSprite)
+    otherSprite.destroy()
+})
 function setNextGap () {
     if (groundHasGaps) {
         gap = randint(gapMinimum, gapMaximum)
@@ -1116,12 +1168,42 @@ function setPlayerOnGround (ground: Sprite) {
     dude.vx = 0
     dude.vy = 0
 }
+function showPoints (aSprite: Sprite) {
+    if (sprites.readDataNumber(aSprite, dataPoints) == 500) {
+        anImage = pointsImages[3]
+        pointsTaken = 500
+    } else if (sprites.readDataNumber(aSprite, dataPoints) == 200) {
+        anImage = pointsImages[2]
+        pointsTaken = 200
+    } else if (sprites.readDataNumber(aSprite, dataPoints) == 100) {
+        anImage = pointsImages[1]
+        pointsTaken = 100
+    } else {
+        anImage = pointsImages[0]
+        pointsTaken = 50
+    }
+    pointsSprite = sprites.create(anImage, SpriteKind.Points)
+    pointsSprite.setPosition(aSprite.x, aSprite.y)
+    pointsSprite.setFlag(SpriteFlag.Invisible, false)
+    addScreenElement(pointsSprite)
+    timer.after(250, function () {
+        pointsSprite.setFlag(SpriteFlag.Invisible, true)
+        info.changeScoreBy(pointsTaken)
+        timer.after(1000, function () {
+            removeScreenElement(pointsSprite)
+            pointsSprite.destroy()
+        })
+    })
+}
 function setIdleImage () {
     if (facingRight) {
         dude.setImage(idleImagesRight[0])
     } else {
         dude.setImage(idleImagesLeft[0])
     }
+}
+function addScreenElement (aSprite: Sprite) {
+    screenElements.push(aSprite)
 }
 function playerJumps () {
     if (onGround) {
@@ -1139,6 +1221,8 @@ function checkPlayer () {
     checkPlayerPosition()
     checkPlayerOverlaps()
 }
+let pointsSprite: Sprite = null
+let pointsTaken = 0
 let weaponSprite: Sprite = null
 let groundLength = 0
 let jumpingImageLeft: Image = null
@@ -1159,6 +1243,7 @@ let ground1: Image = null
 let gameSpeed = 0
 let gap = 0
 let groundMaximumX = 0
+let pointsImages: Image[] = []
 let anImage: Image = null
 let weaponImagesLeft: Image[] = []
 let weaponImagesRight: Image[] = []
@@ -1176,8 +1261,8 @@ let groundHasGapsAfterLevel = 0
 let area = 0
 let level = 0
 let screenHeight = 0
-let weapon: Sprite = null
 let screenElements: Sprite[] = []
+let weapon: Sprite = null
 let screenWidth = 0
 let foodPoints: number[] = []
 let dataPoints = ""
