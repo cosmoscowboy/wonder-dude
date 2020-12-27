@@ -19,9 +19,7 @@ namespace ImageProp {
 namespace AnyProp {
     export const ObjectPositionArray = AnyProp.create()
 }
-/**
- * Top line of player jump 22 (jumps 50 pixels)
- */
+// Top line of player jump 22 (jumps 50 pixels)
 function animatePlayer () {
     character.loopFrames(
     dude,
@@ -43,7 +41,7 @@ function increaseDistanceExplored (distance: number) {
 sprites.onOverlap(SpriteKind.Weapon, SpriteKind.Ground, function (sprite, otherSprite) {
     sprite.destroy()
 })
-function setEgg () {
+function setEgg (positionX: number) {
     anEgg = sprites.create(img`
         .........5555..........
         ......5555555155.......
@@ -63,7 +61,7 @@ function setEgg () {
         .....fff55555fff.......
         ........fffff..........
         `, SpriteKind.Egg)
-    placeOnGround(anEgg, scene.screenWidth())
+    placeOnGround(anEgg, positionX)
 }
 controller.B.onEvent(ControllerButtonEvent.Pressed, function () {
     playerJumps()
@@ -97,6 +95,22 @@ sprites.onOverlap(SpriteKind.Player, SpriteKind.WeaponToTake, function (sprite, 
         sprite.say("")
     })
 })
+function spawnFood () {
+    foodLocationsLevel = foodLocations[getLevelIndex()]
+    if (foodLocationsLevel.length > 0) {
+        foodLocationSet = foodLocationsLevel[0]
+        foodLocation = foodLocationSet[0]
+        if (foodLocation <= distanceExploredForLevel) {
+            foodLocationSet = foodLocationsLevel.removeAt(0)
+            foodType = foodLocationSet[1]
+            foodSprite = sprites.create(foodImages[foodType], SpriteKind.Food)
+            sprites.setDataNumber(foodSprite, dataPoints, foodPoints[foodType])
+            foodSprite.x = screenWidth + foodLocationSet[2]
+            foodSprite.bottom = foodLocationSet[3]
+            screenElements.push(foodSprite)
+        }
+    }
+}
 controller.A.onEvent(ControllerButtonEvent.Pressed, function () {
     playerThrowsWeapon()
 })
@@ -139,9 +153,9 @@ function setVariables () {
     screenHeight = scene.screenHeight()
     level = 1
     area = 1
-    distanceExplored = 0
-    distanceExploredForLevel = 0
     groundHasGapsAfterLevel = 3
+    showingIntroduction = false
+    inLevel = true
     groundHasGaps = false
     canGetWeapon = false
     hasWeapon = false
@@ -153,7 +167,6 @@ function setVariables () {
     screenElements = []
 }
 function setFood () {
-    foodObjects = []
     foodImages = [img`
         . . . . 5 5 5 4 . . . . . . . . 
         5 5 5 5 5 5 4 5 . . . . . . . . 
@@ -198,14 +211,8 @@ function setFood () {
         . . . f 5 . . . 
         `]
     foodPoints = [50, 50, 100]
-    foodPositionsLevel1 = [[[160, -20, 22]], [[160, -20, 22]], [[160, -20, 22]]]
-    for (let index = 0; index <= foodImages.length - 1; index++) {
-        foodObject = blockObject.create()
-        blockObject.setImageProperty(foodObject, ImageProp.ObjectImage, foodImages[index])
-        blockObject.setNumberProperty(foodObject, NumProp.ObjectPoints, foodPoints[index])
-        blockObject.setAnyProperty(foodObject, AnyProp.ObjectPositionArray, foodPositionsLevel1[index])
-        foodObjects.push(foodObject)
-    }
+    foodLocations = [[[160, 0, -20, 48], [224, 1, -20, 104]], [[160, 0, -20, 48], [224, 1, -20, 104]]]
+    dataPoints = "points"
 }
 function checkGroundOffScreen () {
     for (let value of currentGroundPieces) {
@@ -223,11 +230,13 @@ function checkGroundOffScreen () {
             }
         }
     }
-    checkLevelFromDistance()
 }
 controller.left.onEvent(ControllerButtonEvent.Pressed, function () {
     facingRight = false
 })
+function getLevelIndex () {
+    return level - 1
+}
 function defineImages () {
     weaponImagesRight = [img`
         . . . . . . . . . . . . . . . . 
@@ -973,7 +982,7 @@ function setRandomGround () {
     increaseDistanceExplored(aGround.width)
 }
 function checkPlayerPosition () {
-    dude.say(convertToText(distanceExplored))
+    dude.say("" + Math.idiv(dude.top, 1) + "-" + Math.idiv(dude.bottom, 1))
     if (dude.x > playerCannotMovePast) {
         dude.x = playerCannotMovePast
     } else if (dude.x < playerStartsAt) {
@@ -1155,24 +1164,30 @@ let weaponImagesLeft: Image[] = []
 let weaponImagesRight: Image[] = []
 let nextGroundPiece: Sprite = null
 let aGround: Sprite = null
-let foodObject: blockObject.BlockObject = null
-let foodPositionsLevel1: number[][][] = []
-let foodPoints: number[] = []
-let foodImages: Image[] = []
-let foodObjects: blockObject.BlockObject[] = []
 let gapMaximum = 0
 let gapMinimum = 0
 let playerCannotMovePast = 0
 let changeLevelAfterDistanceOf = 0
 let canGetWeapon = false
 let groundHasGaps = false
+let inLevel = false
+let showingIntroduction = false
 let groundHasGapsAfterLevel = 0
 let area = 0
 let level = 0
 let screenHeight = 0
-let screenWidth = 0
-let screenElements: Sprite[] = []
 let weapon: Sprite = null
+let screenElements: Sprite[] = []
+let screenWidth = 0
+let foodPoints: number[] = []
+let dataPoints = ""
+let foodImages: Image[] = []
+let foodSprite: Sprite = null
+let foodType = 0
+let foodLocation = 0
+let foodLocationSet: number[] = []
+let foodLocations: number[][][] = []
+let foodLocationsLevel: number[][] = []
 let hasWeapon = false
 let levelDisplay: TextSprite = null
 let currentGroundPieces: Sprite[] = []
@@ -1197,12 +1212,17 @@ setVariables()
 setFood()
 createBackgroundSprites()
 setPlayer()
-setEgg()
+setEgg(scene.screenWidth() + 80)
 defineImages()
 game.onUpdate(function () {
-    moveScreenElements()
-    checkGroundOffScreen()
-    getNextGroundPiece()
-    checkOnGround()
-    checkPlayer()
+    if (showingIntroduction) {
+    	
+    } else if (inLevel) {
+        moveScreenElements()
+        checkGroundOffScreen()
+        getNextGroundPiece()
+        checkOnGround()
+        checkPlayer()
+        spawnFood()
+    }
 })
