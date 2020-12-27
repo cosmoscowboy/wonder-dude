@@ -25,13 +25,13 @@ function animatePlayer () {
     character.loopFrames(
     dude,
     walkingImagesRight,
-    Math.abs(walkingSpeed) * 2,
+    Math.abs(walkingSpeed) * 1.5,
     character.rule(Predicate.MovingRight)
     )
     character.loopFrames(
     dude,
     walkingImagesLeft,
-    Math.abs(walkingSpeed) * 2,
+    Math.abs(walkingSpeed) * 1.5,
     character.rule(Predicate.MovingLeft)
     )
 }
@@ -94,6 +94,9 @@ sprites.onOverlap(SpriteKind.Player, SpriteKind.WeaponToTake, function (sprite, 
     hasWeapon = true
     otherSprite.destroy()
     sprite.say("Weapon!")
+    timer.after(500, function () {
+        playerThrowsWeapon()
+    })
     timer.after(1000, function () {
         sprite.say("")
     })
@@ -361,6 +364,74 @@ function defineImages () {
         f f 5 5 5 5 f f 5 5 5 f 5 5 5 f . 
         . f f f f f . . f f f . f f f . . 
         `]
+    snailImages = [img`
+        .....................
+        .....................
+        .....................
+        .55.55...............
+        5545555..............
+        1f11f11...cbbbb......
+        f11f11..ccbb22221....
+        .fff555ccb22222221...
+        ..f5555ccb22cccc222..
+        ..f5551cb22ccbbcc22..
+        .f5551ccb22cb22bcc21.
+        .f5551ccb22c2222bc21.
+        f55551ccb22c22c22c22.
+        f55551ccb22bccb22c22.
+        f55551ccbb22bb222c22.
+        f555551ccb2222222c22.
+        f555551ccbbb2222c2225
+        .f555511ccbbbbbcc2255
+        .f55555111cbbcc22255f
+        ..ff555555111225555f.
+        ....fff5555555555ff..
+        .......ffffffffff....
+        `, img`
+        .55.555..............
+        55455555.............
+        1f11f111.............
+        f11f111..............
+        .ff5ff5..............
+        ...f5f5...cbbbb......
+        ...f5f5.ccbb22221....
+        ...f551ccb22222221...
+        ..f5551ccb22cccc222..
+        ..f5551cb22ccbbcc22..
+        .f5551ccb22cb22bcc21.
+        .f5551ccb22c2222bc21.
+        f55551ccb22c22c22c22.
+        f55551ccb22bccb22c22.
+        f55551ccbb22bb222c22.
+        f555551ccb2222222c22.
+        f555551ccbbb2222c2225
+        .f555511ccbbbbbcc2255
+        .f55555111cbbcc22255f
+        ..ff555555111225555f.
+        ....fff5555555555ff..
+        .......ffffffffff....
+        `]
+    rockImage = img`
+        .....fffff..........
+        ....f7777ffff.......
+        ...f777bbf771f......
+        ...f77bbb1f7b1f.....
+        ..f777bbb1f7bb1f....
+        ..f7fbbbb1f77bb1f...
+        .f77fbbbb1f77bb1f...
+        .f77fbbbbb1f77bb1f..
+        .fff7fbbbb1f77bb1f..
+        .fb1f7fbbb1f77bbff..
+        f7bb1f7b7ffff77f1ff.
+        f77bb1f7f7711fffb1f.
+        f77bb1ff7bbbb1fbbb1f
+        f77bbffbbbbbb1f7bb1f
+        f77bff7bb7bbb1f7bb1f
+        f777f77777bbb1ff7bbf
+        .f7ff77777bb7fff7bbf
+        .f7ff7777777fffff7ff
+        ..fffffffffffffffff.
+        `
 }
 function getNextGroundPiece () {
     groundMaximumX = 0
@@ -1030,7 +1101,6 @@ function setRandomGround () {
     increaseDistanceExplored(aGround.width)
 }
 function checkPlayerPosition () {
-    dude.say("" + Math.idiv(dude.top, 1) + "-" + Math.idiv(dude.bottom, 1))
     if (dude.x > playerCannotMovePast) {
         dude.x = playerCannotMovePast
     } else if (dude.x < playerStartsAt) {
@@ -1243,6 +1313,8 @@ let ground1: Image = null
 let gameSpeed = 0
 let gap = 0
 let groundMaximumX = 0
+let rockImage: Image = null
+let snailImages: Image[] = []
 let pointsImages: Image[] = []
 let anImage: Image = null
 let weaponImagesLeft: Image[] = []
