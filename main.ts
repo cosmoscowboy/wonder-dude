@@ -10,6 +10,7 @@ namespace SpriteKind {
     export const WeaponToTake = SpriteKind.create()
     export const Weapon = SpriteKind.create()
     export const Points = SpriteKind.create()
+    export const Rock = SpriteKind.create()
 }
 namespace NumProp {
     export const ObjectPoints = NumProp.create()
@@ -19,6 +20,17 @@ namespace ImageProp {
 }
 namespace AnyProp {
     export const ObjectPositionArray = AnyProp.create()
+}
+function spawnRocks () {
+    rockLocationsLevel = rockLocations[getLevelIndex()]
+    if (rockLocationsLevel.length > 0) {
+        rockLocation = rockLocationsLevel[0]
+        if (rockLocation <= distanceExploredForLevel) {
+            rockLocation = rockLocationsLevel.removeAt(0)
+            rockSprite = sprites.create(rockImage, SpriteKind.Rock)
+            placeOnGroundOutsideScreen(rockSprite)
+        }
+    }
 }
 // Top line of player jump 22 (jumps 50 pixels)
 function animatePlayer () {
@@ -64,9 +76,84 @@ function setEgg (positionX: number) {
         `, SpriteKind.Egg)
     placeOnGround(anEgg, positionX)
 }
+function setSnails () {
+    snailSpeed = -15
+    snailImages = [img`
+        .....................
+        .....................
+        .....................
+        .55.55...............
+        5545555..............
+        1f11f11...cbbbb......
+        f11f11..ccbb22221....
+        .fff555ccb22222221...
+        ..f5555ccb22cccc222..
+        ..f5551cb22ccbbcc22..
+        .f5551ccb22cb22bcc21.
+        .f5551ccb22c2222bc21.
+        f55551ccb22c22c22c22.
+        f55551ccb22bccb22c22.
+        f55551ccbb22bb222c22.
+        f555551ccb2222222c22.
+        f555551ccbbb2222c2225
+        .f555511ccbbbbbcc2255
+        .f55555111cbbcc22255f
+        ..ff555555111225555f.
+        ....fff5555555555ff..
+        .......ffffffffff....
+        `, img`
+        .55.555..............
+        55455555.............
+        1f11f111.............
+        f11f111..............
+        .ff5ff5..............
+        ...f5f5...cbbbb......
+        ...f5f5.ccbb22221....
+        ...f551ccb22222221...
+        ..f5551ccb22cccc222..
+        ..f5551cb22ccbbcc22..
+        .f5551ccb22cb22bcc21.
+        .f5551ccb22c2222bc21.
+        f55551ccb22c22c22c22.
+        f55551ccb22bccb22c22.
+        f55551ccbb22bb222c22.
+        f555551ccb2222222c22.
+        f555551ccbbb2222c2225
+        .f555511ccbbbbbcc2255
+        .f55555111cbbcc22255f
+        ..ff555555111225555f.
+        ....fff5555555555ff..
+        .......ffffffffff....
+        `]
+    snailLocations = [[256, 272], [256, 272]]
+}
 controller.B.onEvent(ControllerButtonEvent.Pressed, function () {
     playerJumps()
 })
+function setRocks () {
+    rockImage = img`
+        .....fffff..........
+        ....f7777ffff.......
+        ...f777bbf771f......
+        ...f77bbb1f7b1f.....
+        ..f777bbb1f7bb1f....
+        ..f7fbbbb1f77bb1f...
+        .f77fbbbb1f77bb1f...
+        .f77fbbbbb1f77bb1f..
+        .fff7fbbbb1f77bb1f..
+        .fb1f7fbbb1f77bbff..
+        f7bb1f7b7ffff77f1ff.
+        f77bb1f7f7711fffb1f.
+        f77bb1ff7bbbb1fbbb1f
+        f77bbffbbbbbb1f7bb1f
+        f77bff7bb7bbb1f7bb1f
+        f777f77777bbb1ff7bbf
+        .f7ff77777bb7fff7bbf
+        .f7ff7777777fffff7ff
+        ..fffffffffffffffff.
+        `
+    rockLocations = [[256, 512], [256, 300]]
+}
 function setPlayer () {
     info.setScore(0)
     info.setLife(3)
@@ -217,7 +304,7 @@ function setFood () {
         . . . f 5 . . . 
         `]
     foodPoints = [50, 50, 100]
-    foodLocations = [[[165, 0, -20, 48], [224, 1, -20, 104]], [[160, 0, -20, 48], [224, 1, -20, 104]]]
+    foodLocations = [[[165, 0, -20, 48], [224, 1, -20, 104], [240, 2, -20, 75]], [[160, 0, -20, 48], [224, 1, -20, 104]]]
     dataPoints = "points"
 }
 function checkGroundOffScreen () {
@@ -364,74 +451,6 @@ function defineImages () {
         f f 5 5 5 5 f f 5 5 5 f 5 5 5 f . 
         . f f f f f . . f f f . f f f . . 
         `]
-    snailImages = [img`
-        .....................
-        .....................
-        .....................
-        .55.55...............
-        5545555..............
-        1f11f11...cbbbb......
-        f11f11..ccbb22221....
-        .fff555ccb22222221...
-        ..f5555ccb22cccc222..
-        ..f5551cb22ccbbcc22..
-        .f5551ccb22cb22bcc21.
-        .f5551ccb22c2222bc21.
-        f55551ccb22c22c22c22.
-        f55551ccb22bccb22c22.
-        f55551ccbb22bb222c22.
-        f555551ccb2222222c22.
-        f555551ccbbb2222c2225
-        .f555511ccbbbbbcc2255
-        .f55555111cbbcc22255f
-        ..ff555555111225555f.
-        ....fff5555555555ff..
-        .......ffffffffff....
-        `, img`
-        .55.555..............
-        55455555.............
-        1f11f111.............
-        f11f111..............
-        .ff5ff5..............
-        ...f5f5...cbbbb......
-        ...f5f5.ccbb22221....
-        ...f551ccb22222221...
-        ..f5551ccb22cccc222..
-        ..f5551cb22ccbbcc22..
-        .f5551ccb22cb22bcc21.
-        .f5551ccb22c2222bc21.
-        f55551ccb22c22c22c22.
-        f55551ccb22bccb22c22.
-        f55551ccbb22bb222c22.
-        f555551ccb2222222c22.
-        f555551ccbbb2222c2225
-        .f555511ccbbbbbcc2255
-        .f55555111cbbcc22255f
-        ..ff555555111225555f.
-        ....fff5555555555ff..
-        .......ffffffffff....
-        `]
-    rockImage = img`
-        .....fffff..........
-        ....f7777ffff.......
-        ...f777bbf771f......
-        ...f77bbb1f7b1f.....
-        ..f777bbb1f7bb1f....
-        ..f7fbbbb1f77bb1f...
-        .f77fbbbb1f77bb1f...
-        .f77fbbbbb1f77bb1f..
-        .fff7fbbbb1f77bb1f..
-        .fb1f7fbbb1f77bbff..
-        f7bb1f7b7ffff77f1ff.
-        f77bb1f7f7711fffb1f.
-        f77bb1ff7bbbb1fbbb1f
-        f77bbffbbbbbb1f7bb1f
-        f77bff7bb7bbb1f7bb1f
-        f777f77777bbb1ff7bbf
-        .f7ff77777bb7fff7bbf
-        .f7ff7777777fffff7ff
-        ..fffffffffffffffff.
-        `
 }
 function getNextGroundPiece () {
     groundMaximumX = 0
@@ -655,6 +674,9 @@ function createBackgroundSprites () {
 }
 controller.right.onEvent(ControllerButtonEvent.Pressed, function () {
     facingRight = true
+})
+sprites.onOverlap(SpriteKind.Player, SpriteKind.Rock, function (sprite, otherSprite) {
+	
 })
 function setPlayerImages () {
     idleImagesRight = [img`
@@ -1101,6 +1123,7 @@ function setRandomGround () {
     increaseDistanceExplored(aGround.width)
 }
 function checkPlayerPosition () {
+    dude.say("" + dude.ax + "-" + dude.vx)
     if (dude.x > playerCannotMovePast) {
         dude.x = playerCannotMovePast
     } else if (dude.x < playerStartsAt) {
@@ -1125,6 +1148,11 @@ function setNextGap () {
     } else {
         gap = 0
     }
+}
+function placeOnGroundOutsideScreen (aSprite: Sprite) {
+    aSprite.bottom = currentGroundPieces[0].top
+    aSprite.left = screenWidth
+    addScreenElement(aSprite)
 }
 function playerGetsEgg () {
     if (!(canGetWeapon)) {
@@ -1313,8 +1341,6 @@ let ground1: Image = null
 let gameSpeed = 0
 let gap = 0
 let groundMaximumX = 0
-let rockImage: Image = null
-let snailImages: Image[] = []
 let pointsImages: Image[] = []
 let anImage: Image = null
 let weaponImagesLeft: Image[] = []
@@ -1358,18 +1384,28 @@ let facingRight = false
 let dying = false
 let onGround = false
 let jumping = false
+let snailLocations: number[][] = []
+let snailImages: Image[] = []
+let snailSpeed = 0
 let anEgg: Sprite = null
-let distanceExploredForLevel = 0
 let distanceExplored = 0
 let walkingImagesLeft: Image[] = []
 let walkingSpeed = 0
 let walkingImagesRight: Image[] = []
 let dude: Sprite = null
+let rockImage: Image = null
+let rockSprite: Sprite = null
+let distanceExploredForLevel = 0
+let rockLocation = 0
+let rockLocations: number[][] = []
+let rockLocationsLevel: number[] = []
 setVariables()
 setFood()
+setRocks()
+setSnails()
 createBackgroundSprites()
 setPlayer()
-setEgg(scene.screenWidth() + 80)
+setEgg(scene.screenWidth() * 2)
 defineImages()
 game.onUpdate(function () {
     if (showingIntroduction) {
@@ -1381,5 +1417,6 @@ game.onUpdate(function () {
         checkOnGround()
         checkPlayer()
         spawnFood()
+        spawnRocks()
     }
 })
