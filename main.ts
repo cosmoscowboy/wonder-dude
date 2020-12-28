@@ -165,6 +165,9 @@ function setPlayer () {
     jumpSpeed = -200
     weaponThrownEveryMs = 300
     weaponLastThrowTime = game.runtime()
+    eneryLostEveryMs = 1000
+    energyLostEachTime = 2
+    energyLastLostTime = game.runtime() + eneryLostEveryMs
     setPlayerImages()
     dude = sprites.create(idleImagesRight[0], SpriteKind.Player)
     walkingSpeed = 75
@@ -173,9 +176,9 @@ function setPlayer () {
     setPlayerOnGround(currentGroundPieces[0])
     animatePlayer()
     dude.ay = 400
-    levelDisplay = textsprite.create("")
-    levelDisplay.top = 5
-    setLevelDisplay()
+    playerEnergy = statusbars.create(60, 8, StatusBarKind.Energy)
+    playerEnergy.x = screenWidth / 2
+    playerEnergy.top = 0
 }
 sprites.onOverlap(SpriteKind.Player, SpriteKind.WeaponToTake, function (sprite, otherSprite) {
     hasWeapon = true
@@ -198,6 +201,7 @@ function spawnFood () {
             foodType = foodLocationSet[1]
             foodSprite = sprites.create(foodImages[foodType], SpriteKind.Food)
             sprites.setDataNumber(foodSprite, dataPoints, foodPoints[foodType])
+            sprites.setDataNumber(foodSprite, dataEnergy, foodEnergies[foodType])
             foodSprite.x = screenWidth + foodLocationSet[2]
             foodSprite.bottom = foodLocationSet[3]
             addScreenElement(foodSprite)
@@ -240,6 +244,10 @@ function placeOnGround (aSprite: Sprite, distanceFromPlayer: number) {
 function removeScreenElement (aSprite: Sprite) {
     screenElements.removeAt(screenElements.indexOf(aSprite))
 }
+// levelDisplay = textsprite.create("")
+// levelDisplay.top = 0
+// levelDisplay.left = 30
+// setLevelDisplay()
 function setVariables () {
     scene.setBackgroundColor(8)
     screenWidth = scene.screenWidth()
@@ -304,8 +312,10 @@ function setFood () {
         . . . f 5 . . . 
         `]
     foodPoints = [50, 50, 100]
+    foodEnergies = [5, 5, 10]
     foodLocations = [[[165, 0, -20, 48], [224, 1, -20, 104], [240, 2, -20, 75]], [[160, 0, -20, 48], [224, 1, -20, 104]]]
     dataPoints = "points"
+    dataEnergy = "energy"
 }
 function checkGroundOffScreen () {
     for (let value of currentGroundPieces) {
@@ -327,6 +337,12 @@ function checkGroundOffScreen () {
 controller.left.onEvent(ControllerButtonEvent.Pressed, function () {
     facingRight = false
 })
+function reduceEnergyOverTime () {
+    if (energyLastLostTime < game.runtime()) {
+        energyLastLostTime = game.runtime() + eneryLostEveryMs
+        playerEnergy.value += energyLostEachTime * -1
+    }
+}
 function getLevelIndex () {
     return level - 1
 }
@@ -451,6 +467,9 @@ function defineImages () {
         f f 5 5 5 5 f f 5 5 5 f 5 5 5 f . 
         . f f f f f . . f f f . f f f . . 
         `]
+}
+function changeEnergy (aSprite: Sprite) {
+    playerEnergy.value += sprites.readDataNumber(aSprite, dataEnergy)
 }
 function getNextGroundPiece () {
     groundMaximumX = 0
@@ -1089,9 +1108,9 @@ function checkOnGround () {
     }
 }
 function setLevelDisplay () {
+    let levelDisplay: TextSprite = null
     levelDisplay.setText("" + level + "-" + area)
     levelDisplay.setMaxFontHeight(2)
-    levelDisplay.x = screenWidth / 2
 }
 function setRandomGround () {
     groundLength = randint(2, 10)
@@ -1123,7 +1142,6 @@ function setRandomGround () {
     increaseDistanceExplored(aGround.width)
 }
 function checkPlayerPosition () {
-    dude.say("" + dude.ax + "-" + dude.vx)
     if (dude.x > playerCannotMovePast) {
         dude.x = playerCannotMovePast
     } else if (dude.x < playerStartsAt) {
@@ -1140,6 +1158,7 @@ function checkPlayerOverlaps () {
 }
 sprites.onOverlap(SpriteKind.Player, SpriteKind.Food, function (sprite, otherSprite) {
     showPoints(otherSprite)
+    changeEnergy(otherSprite)
     otherSprite.destroy()
 })
 function setNextGap () {
@@ -1361,7 +1380,8 @@ let level = 0
 let screenHeight = 0
 let screenElements: Sprite[] = []
 let weapon: Sprite = null
-let screenWidth = 0
+let foodEnergies: number[] = []
+let dataEnergy = ""
 let foodPoints: number[] = []
 let dataPoints = ""
 let foodImages: Image[] = []
@@ -1372,10 +1392,14 @@ let foodLocationSet: number[] = []
 let foodLocations: number[][][] = []
 let foodLocationsLevel: number[][] = []
 let hasWeapon = false
-let levelDisplay: TextSprite = null
+let screenWidth = 0
+let playerEnergy: StatusBarSprite = null
 let currentGroundPieces: Sprite[] = []
 let playerStartsAt = 0
 let idleImagesRight: Image[] = []
+let energyLastLostTime = 0
+let energyLostEachTime = 0
+let eneryLostEveryMs = 0
 let weaponLastThrowTime = 0
 let weaponThrownEveryMs = 0
 let jumpSpeed = 0
@@ -1411,6 +1435,7 @@ game.onUpdate(function () {
     if (showingIntroduction) {
     	
     } else if (inLevel) {
+        reduceEnergyOverTime()
         moveScreenElements()
         checkGroundOffScreen()
         getNextGroundPiece()
