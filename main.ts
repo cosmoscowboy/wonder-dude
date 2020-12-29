@@ -11,6 +11,8 @@ namespace SpriteKind {
     export const Weapon = SpriteKind.create()
     export const Points = SpriteKind.create()
     export const Rock = SpriteKind.create()
+    export const Snail = SpriteKind.create()
+    export const EnemyDying = SpriteKind.create()
 }
 namespace NumProp {
     export const ObjectPoints = NumProp.create()
@@ -77,7 +79,7 @@ function setEgg (positionX: number) {
     placeOnGround(anEgg, positionX)
 }
 function setSnails () {
-    snailSpeed = -15
+    snailSpeed = -5
     snailImages = [img`
         .....................
         .....................
@@ -125,7 +127,7 @@ function setSnails () {
         ....fff5555555555ff..
         .......ffffffffff....
         `]
-    snailLocations = [[256, 272], [256, 272]]
+    snailLocations = [[606, 638], [256, 272]]
 }
 controller.B.onEvent(ControllerButtonEvent.Pressed, function () {
     playerJumps()
@@ -185,7 +187,7 @@ sprites.onOverlap(SpriteKind.Player, SpriteKind.WeaponToTake, function (sprite, 
     hasWeapon = true
     otherSprite.destroy()
     sprite.say("Weapon!")
-    timer.after(500, function () {
+    timer.after(250, function () {
         playerThrowsWeapon()
     })
     timer.after(1000, function () {
@@ -242,8 +244,11 @@ function placeOnGround (aSprite: Sprite, distanceFromPlayer: number) {
     aSprite.bottom = currentGroundPieces[0].top
     addScreenElement(aSprite)
 }
-function removeScreenElement (aSprite: Sprite) {
+function removeScreenElement (aSprite: Sprite, destroy: boolean) {
     screenElements.removeAt(screenElements.indexOf(aSprite))
+    if (destroy) {
+        aSprite.destroy()
+    }
 }
 // levelDisplay = textsprite.create("")
 // levelDisplay.top = 0
@@ -266,6 +271,8 @@ function setVariables () {
     playerCannotMovePast = 40
     gapMinimum = 16
     gapMaximum = 55
+    dataSpeedX = "speedX"
+    dataDamage = "damage"
     screenElements = []
 }
 function setFood () {
@@ -334,6 +341,30 @@ function checkGroundOffScreen () {
             }
         }
     }
+}
+function snailDies (aSnail: Sprite) {
+    sprites.setDataNumber(aSnail, dataSpeedX, 0)
+    animation.stopAnimation(animation.AnimationTypes.All, aSnail)
+    aSnail.setImage(img`
+        . . . . . . . c b b b b . . . . . 
+        . . . . . c c b b 2 2 2 2 1 . . . 
+        . . . . c c b 2 2 2 2 2 2 2 1 . . 
+        . . . c c c b 2 2 c c c c 2 2 2 . 
+        . . . c c b 2 2 c c b b c c 2 2 . 
+        . . c c c b 2 2 c b 2 2 b c c 2 1 
+        . . c c c b 2 2 c 2 2 2 2 b c 2 1 
+        . . c c c b 2 2 c 2 2 c 2 2 c 2 2 
+        . . c c c b 2 2 b c c b 2 2 c 2 2 
+        . . c c c b b 2 2 b b 2 2 2 c 2 2 
+        . 2 2 2 2 c b 2 2 2 2 2 2 2 c 2 2 
+        2 4 4 4 4 2 b b b 2 2 2 2 c 2 2 2 
+        4 4 f f f 2 2 b b b b b c c 2 2 . 
+        4 f f f f f 2 2 b b c c 2 2 2 . . 
+        . . f f f f f 2 2 2 2 2 . . . . . 
+        `)
+    aSnail.vy = -150
+    aSnail.ay = 400
+    aSnail.setKind(SpriteKind.EnemyDying)
 }
 controller.left.onEvent(ControllerButtonEvent.Pressed, function () {
     facingRight = false
@@ -490,7 +521,12 @@ function moveScreenElements () {
             value3.vx = 0
         }
         for (let value4 of screenElements) {
-            value4.vx = 0
+            spriteSpeedX = sprites.readDataNumber(value4, dataSpeedX)
+            if (spriteSpeedX) {
+                value4.vx = spriteSpeedX
+            } else {
+                value4.vx = 0
+            }
         }
     }
     if (dude.x + 1 > playerCannotMovePast && dude.vx > 0) {
@@ -498,7 +534,12 @@ function moveScreenElements () {
             value5.vx = gameSpeed
         }
         for (let value6 of screenElements) {
-            value6.vx = gameSpeed
+            spriteSpeedX = sprites.readDataNumber(value6, dataSpeedX)
+            if (spriteSpeedX) {
+                value6.vx = gameSpeed - spriteSpeedX
+            } else {
+                value6.vx = gameSpeed
+            }
         }
     }
 }
@@ -694,34 +735,8 @@ controller.right.onEvent(ControllerButtonEvent.Pressed, function () {
 })
 sprites.onOverlap(SpriteKind.Player, SpriteKind.Rock, function (sprite, otherSprite) {
     if (!(takingDamage)) {
-        reduceEnergy(25)
-        controller.moveSprite(dude, 0, 0)
-        takingDamage = true
-        animation.stopAnimation(animation.AnimationTypes.All, dude)
-        character.setCharacterAnimationsEnabled(dude, false)
-        dude.vy = -100
-        if (facingRight) {
-            animation.runImageAnimation(
-            dude,
-            fallingImagesRight,
-            500,
-            false
-            )
-            dude.vx = 85
-        } else {
-            animation.runImageAnimation(
-            dude,
-            fallingImagesLeft,
-            500,
-            false
-            )
-            dude.vx = 50
-        }
-        timer.after(600, function () {
-            controller.moveSprite(dude, walkingSpeed, 0)
-            character.setCharacterAnimationsEnabled(dude, false)
-            takingDamage = false
-        })
+        reduceEnergy(10)
+        playerTakesDamage(false, otherSprite)
     }
 })
 function setPlayerImages () {
@@ -1257,6 +1272,42 @@ function checkLevelFromDistance () {
 function addEnergy (aSprite: Sprite) {
     playerEnergy.value += sprites.readDataNumber(aSprite, dataEnergy)
 }
+function playerTakesDamage (destroySprite: boolean, aSprite: Sprite) {
+    if (destroySprite) {
+    	
+    }
+    controller.moveSprite(dude, 0, 0)
+    takingDamage = true
+    animation.stopAnimation(animation.AnimationTypes.All, dude)
+    character.setCharacterAnimationsEnabled(dude, false)
+    dude.vy = -100
+    if (facingRight) {
+        animation.runImageAnimation(
+        dude,
+        fallingImagesRight,
+        500,
+        false
+        )
+        dude.vx = 85
+    } else {
+        animation.runImageAnimation(
+        dude,
+        fallingImagesLeft,
+        500,
+        false
+        )
+        dude.vx = 50
+    }
+    timer.after(600, function () {
+        controller.moveSprite(dude, walkingSpeed, 0)
+        character.setCharacterAnimationsEnabled(dude, false)
+        takingDamage = false
+    })
+}
+sprites.onOverlap(SpriteKind.Weapon, SpriteKind.Snail, function (sprite, otherSprite) {
+    info.changeScoreBy(sprites.readDataNumber(otherSprite, dataPoints))
+    snailDies(otherSprite)
+})
 function checkOnGround () {
     onGround = false
     for (let value8 of currentGroundPieces) {
@@ -1318,6 +1369,26 @@ function checkPlayerPosition () {
         game.over(false)
     }
 }
+function spawnSnails () {
+    snailLocationsLevel = snailLocations[getLevelIndex()]
+    if (snailLocationsLevel.length > 0) {
+        snailLocation = snailLocationsLevel[0]
+        if (snailLocation <= distanceExploredForLevel) {
+            snailLocation = snailLocationsLevel.removeAt(0)
+            snailSprite = sprites.create(snailImages[0], SpriteKind.Snail)
+            sprites.setDataNumber(snailSprite, dataSpeedX, snailSpeed)
+            sprites.setDataNumber(snailSprite, dataDamage, 15)
+            sprites.setDataNumber(snailSprite, dataPoints, 10)
+            animation.runImageAnimation(
+            snailSprite,
+            snailImages,
+            500,
+            true
+            )
+            placeOnGroundOutsideScreen(snailSprite)
+        }
+    }
+}
 function checkPlayerOverlaps () {
     if (dude.overlapsWith(anEgg)) {
         playerGetsEgg()
@@ -1326,7 +1397,7 @@ function checkPlayerOverlaps () {
 sprites.onOverlap(SpriteKind.Player, SpriteKind.Food, function (sprite, otherSprite) {
     showPoints(otherSprite)
     addEnergy(otherSprite)
-    otherSprite.destroy()
+    removeScreenElement(otherSprite, true)
 })
 function setNextGap () {
     if (groundHasGaps) {
@@ -1342,7 +1413,7 @@ function placeOnGroundOutsideScreen (aSprite: Sprite) {
 }
 function playerGetsEgg () {
     if (!(canGetWeapon)) {
-        removeScreenElement(anEgg)
+        removeScreenElement(anEgg, false)
         anEgg.setKind(SpriteKind.EggTaken)
         anEgg.setImage(img`
             .........5555..........
@@ -1473,9 +1544,8 @@ function showPoints (aSprite: Sprite) {
     timer.after(250, function () {
         pointsSprite.setFlag(SpriteFlag.Invisible, true)
         info.changeScoreBy(pointsTaken)
-        timer.after(1000, function () {
-            removeScreenElement(pointsSprite)
-            pointsSprite.destroy()
+        timer.after(1500, function () {
+            removeScreenElement(pointsSprite, true)
         })
     })
 }
@@ -1488,6 +1558,13 @@ function setIdleImage () {
 }
 function addScreenElement (aSprite: Sprite) {
     screenElements.push(aSprite)
+}
+function removeDyingEnemies () {
+    for (let value9 of sprites.allOfKind(SpriteKind.EnemyDying)) {
+        if (value9.top > screenHeight) {
+            removeScreenElement(value9, true)
+        }
+    }
 }
 function playerJumps () {
     if (onGround) {
@@ -1505,17 +1582,31 @@ function checkPlayer () {
     checkPlayerPosition()
     checkPlayerOverlaps()
 }
+sprites.onOverlap(SpriteKind.Player, SpriteKind.Snail, function (sprite, otherSprite) {
+    if (!(takingDamage)) {
+        reduceEnergy2 = sprites.readDataNumber(otherSprite, dataDamage)
+        if (reduceEnergy2) {
+            reduceEnergy(reduceEnergy2)
+        }
+        playerTakesDamage(false, otherSprite)
+    }
+    snailDies(otherSprite)
+})
+let reduceEnergy2 = 0
 let pointsSprite: Sprite = null
 let pointsTaken = 0
 let weaponSprite: Sprite = null
+let snailSprite: Sprite = null
+let snailLocation = 0
+let snailLocationsLevel: number[] = []
 let groundLength = 0
 let jumpingImageLeft: Image = null
 let jumpingImageRight: Image = null
+let fallingImagesLeft: Image[] = []
+let fallingImagesRight: Image[] = []
 let throwingImagesLeft: Image[] = []
 let throwingImagesRight: Image[] = []
 let idleImagesLeft: Image[] = []
-let fallingImagesLeft: Image[] = []
-let fallingImagesRight: Image[] = []
 let ground10: Image = null
 let ground9: Image = null
 let ground8: Image = null
@@ -1526,6 +1617,7 @@ let ground4: Image = null
 let ground3: Image = null
 let ground2: Image = null
 let ground1: Image = null
+let spriteSpeedX = 0
 let gameSpeed = 0
 let gap = 0
 let groundMaximumX = 0
@@ -1535,6 +1627,8 @@ let weaponImagesLeft: Image[] = []
 let weaponImagesRight: Image[] = []
 let nextGroundPiece: Sprite = null
 let aGround: Sprite = null
+let dataDamage = ""
+let dataSpeedX = ""
 let gapMaximum = 0
 let gapMinimum = 0
 let playerCannotMovePast = 0
@@ -1613,5 +1707,7 @@ game.onUpdate(function () {
         checkPlayer()
         spawnFood()
         spawnRocks()
+        spawnSnails()
+        removeDyingEnemies()
     }
 })
