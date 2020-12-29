@@ -14,15 +14,7 @@ namespace SpriteKind {
     export const Snail = SpriteKind.create()
     export const EnemyDying = SpriteKind.create()
 }
-namespace NumProp {
-    export const ObjectPoints = NumProp.create()
-}
-namespace ImageProp {
-    export const ObjectImage = ImageProp.create()
-}
-namespace AnyProp {
-    export const ObjectPositionArray = AnyProp.create()
-}
+
 function spawnRocks () {
     rockLocationsLevel = rockLocations[getLevelIndex()]
     if (rockLocationsLevel.length > 0) {
