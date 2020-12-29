@@ -280,16 +280,20 @@ function setVariables () {
     level = 1
     area = 1
     groundHasGapsAfterLevel = 3
+    testing = false
     showingIntroduction = false
     inLevel = true
     groundHasGaps = false
     canGetWeapon = false
     hasWeapon = false
+    distanceExploredForLevel = 0
     changeLevelAfterDistanceOf = 50
     playerStartsAt = 15
     playerCannotMovePast = 40
     gapMinimum = 16
     gapMaximum = 55
+    dataPoints = "points"
+    dataEnergy = "energy"
     dataSpeedX = "speedX"
     dataDamage = "damage"
     screenElements = []
@@ -341,21 +345,36 @@ function setFood () {
     foodPoints = [50, 50, 100]
     foodEnergies = [5, 5, 10]
     foodLocations = [[[165, 0, -20, 48], [224, 1, -20, 104], [240, 2, -20, 75]], [[160, 0, -20, 48], [224, 1, -20, 104]]]
-    dataPoints = "points"
-    dataEnergy = "energy"
+    if (testing) {
+        for (let index = 0; index <= getLevelIndex() - 1; index++) {
+            foodLocations.shift()
+        }
+        if (foodLocations.length > 0) {
+            foodLocationsLevel = foodLocations[getLevelIndex()]
+            foodLocationsLevelTemp = []
+            for (let value of foodLocationsLevel) {
+                foodLocationSet = foodLocationsLevel[0]
+                foodLocation = foodLocationSet[0]
+                if (foodLocation >= distanceExploredForLevel) {
+                    foodLocationsLevelTemp.push(value)
+                }
+            }
+            foodLocations[getLevelIndex()] = foodLocationsLevelTemp
+        }
+    }
 }
 function checkGroundOffScreen () {
-    for (let value of currentGroundPieces) {
-        if (value.right < 0) {
-            currentGroundPieces.removeAt(currentGroundPieces.indexOf(value))
-            value.destroy()
+    for (let value2 of currentGroundPieces) {
+        if (value2.right < 0) {
+            currentGroundPieces.removeAt(currentGroundPieces.indexOf(value2))
+            value2.destroy()
         }
     }
     if (!(groundHasGaps)) {
-        for (let index = 0; index <= currentGroundPieces.length - 1; index++) {
-            aGround = currentGroundPieces[index]
-            if (index + 1 < currentGroundPieces.length) {
-                nextGroundPiece = currentGroundPieces[index + 1]
+        for (let index3 = 0; index3 <= currentGroundPieces.length - 1; index3++) {
+            aGround = currentGroundPieces[index3]
+            if (index3 + 1 < currentGroundPieces.length) {
+                nextGroundPiece = currentGroundPieces[index3 + 1]
                 nextGroundPiece.left = aGround.right
             }
         }
@@ -444,8 +463,8 @@ function defineImages () {
         . . . . . b b 7 7 f . . . . . . 
         `]
     weaponImagesLeft = []
-    for (let value2 of weaponImagesRight) {
-        anImage = value2.clone()
+    for (let value22 of weaponImagesRight) {
+        anImage = value22.clone()
         anImage.flipX()
         weaponImagesLeft.push(anImage)
     }
@@ -497,9 +516,9 @@ function defineImages () {
 }
 function getNextGroundPiece () {
     groundMaximumX = 0
-    for (let value22 of currentGroundPieces) {
-        if (value22.right > groundMaximumX) {
-            groundMaximumX = value22.right
+    for (let value222 of currentGroundPieces) {
+        if (value222.right > groundMaximumX) {
+            groundMaximumX = value222.right
         }
     }
     if (groundMaximumX < screenWidth - gap) {
@@ -528,12 +547,12 @@ function moveScreenElements () {
         for (let value3 of currentGroundPieces) {
             value3.vx = 0
         }
-        for (let value4 of screenElements) {
-            spriteSpeedX = sprites.readDataNumber(value4, dataSpeedX)
+        for (let value42 of screenElements) {
+            spriteSpeedX = sprites.readDataNumber(value42, dataSpeedX)
             if (spriteSpeedX) {
-                value4.vx = spriteSpeedX
+                value42.vx = spriteSpeedX
             } else {
-                value4.vx = 0
+                value42.vx = 0
             }
         }
     }
@@ -1957,6 +1976,7 @@ let weaponImagesLeft: Image[] = []
 let weaponImagesRight: Image[] = []
 let nextGroundPiece: Sprite = null
 let aGround: Sprite = null
+let foodLocationsLevelTemp: number[][] = []
 let dataSpeedX = ""
 let gapMaximum = 0
 let gapMinimum = 0
@@ -2020,6 +2040,7 @@ let snakeImageDying: Image = null
 let dataDamage = ""
 let reduceEnergy2 = 0
 let takingDamage = false
+let testing = false
 setVariables()
 setFood()
 setRocks()
@@ -2027,8 +2048,12 @@ setSnails()
 setSnakes()
 createBackgroundSprites()
 setPlayer()
-setEgg(scene.screenWidth() * 2)
 defineImages()
+if (testing) {
+    setEgg(20)
+} else {
+    setEgg(scene.screenWidth() * 2)
+}
 game.onUpdate(function () {
     if (showingIntroduction) {
     	
