@@ -282,7 +282,7 @@ function setVariables () {
     groundHasGapsAfterLevel = 3
     testing = false
     showingIntroduction = false
-    inLevel = true
+    inLevel = []
     groundHasGaps = false
     canGetWeapon = false
     hasWeapon = false
@@ -345,13 +345,19 @@ function setFood () {
     foodPoints = [50, 50, 100]
     foodEnergies = [5, 5, 10]
     foodLocations = [[[165, 0, -20, 48], [224, 1, -20, 104], [240, 2, -20, 75]], [[160, 0, -20, 48], [224, 1, -20, 104]]]
+    foodLocationsLevel = [[165, 0, -20, 48], [224, 1, -20, 104], [240, 2, -20, 75]]
+    foodLocationsLevel = []
+    foodLocationsLevelTemp = [[165, 0, -20, 48], [224, 1, -20, 104], [240, 2, -20, 75]]
+    foodLocationsLevelTemp = []
+    foodLocationSet = [165, 0, -20, 48]
+    foodLocationSet = []
     if (testing) {
         for (let index = 0; index <= getLevelIndex() - 1; index++) {
             foodLocations.shift()
         }
         if (foodLocations.length > 0) {
             foodLocationsLevel = foodLocations[getLevelIndex()]
-            foodLocationsLevelTemp = []
+            foodLocationsLevelTemp = foodLocations[getLevelIndex()]
             for (let value of foodLocationsLevel) {
                 foodLocationSet = foodLocationsLevel[0]
                 foodLocation = foodLocationSet[0]
@@ -1984,7 +1990,7 @@ let playerCannotMovePast = 0
 let changeLevelAfterDistanceOf = 0
 let canGetWeapon = false
 let groundHasGaps = false
-let inLevel = false
+let inLevel: number[] = []
 let showingIntroduction = false
 let groundHasGapsAfterLevel = 0
 let area = 0
