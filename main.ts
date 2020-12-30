@@ -1299,7 +1299,6 @@ function checkLevelFromDistance () {
     if (distanceExploredForLevel > changeLevelAfterDistanceOf) {
         level += 1
         distanceExploredForLevel = 0
-        setLevelDisplay()
     }
 }
 function addEnergy (aSprite: Sprite) {
@@ -1354,11 +1353,6 @@ function checkOnGround () {
             }
         }
     }
-}
-function setLevelDisplay () {
-    let levelDisplay: TextSprite = null
-    levelDisplay.setText("" + level + "-" + area)
-    levelDisplay.setMaxFontHeight(2)
 }
 function reduceEnergy (amount: number) {
     playerEnergy.value += amount * -1
