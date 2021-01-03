@@ -147,6 +147,21 @@ function setSnails () {
         .......ffffffffff....
         `]
     snailLocations = [[606, 638], [256, 272]]
+    snailLocationsLevelTemp = []
+    if (testing) {
+        for (let index = 0; index <= getLevelIndex() - 1; index++) {
+            snailLocations.shift()
+        }
+        if (snailLocations.length > 0) {
+            snailLocationsLevel = snailLocations[getLevelIndex()]
+            for (let value of snailLocationsLevel) {
+                if (value >= distanceExploredForLevel) {
+                    snailLocationsLevelTemp.push(value)
+                }
+            }
+            snailLocations[getLevelIndex()] = snailLocationsLevelTemp
+        }
+    }
 }
 controller.B.onEvent(ControllerButtonEvent.Pressed, function () {
     playerJumps()
@@ -357,7 +372,6 @@ function setFood () {
         }
         if (foodLocations.length > 0) {
             foodLocationsLevel = foodLocations[getLevelIndex()]
-            foodLocationsLevelTemp = foodLocations[getLevelIndex()]
             for (let value of foodLocationsLevel) {
                 foodLocationSet = foodLocationsLevel[0]
                 foodLocation = foodLocationSet[0]
@@ -1345,11 +1359,10 @@ function checkOnGround () {
     for (let value8 of currentGroundPieces) {
         if (!(onGround)) {
             if (dude.overlapsWith(value8)) {
-                if (dude.bottom - 5 < value8.top) {
-                    setPlayerOnGround(value8)
-                } else {
-                    dude.vx = value8.vx
+                while (dude.overlapsWith(value8)) {
+                    dude.y += -0.5
                 }
+                setPlayerOnGround(value8)
             }
         }
     }
@@ -1780,6 +1793,21 @@ function setSnakes () {
         ..........bbddbbf........
         `]
     snakeLocations = [[730], [730]]
+    snakeLocationsLevelTemp = []
+    if (testing) {
+        for (let index = 0; index <= getLevelIndex() - 1; index++) {
+            snakeLocations.shift()
+        }
+        if (snakeLocations.length > 0) {
+            snakeLocationsLevel = snakeLocations[getLevelIndex()]
+            for (let value of snakeLocationsLevel) {
+                if (value >= distanceExploredForLevel) {
+                    snakeLocationsLevelTemp.push(value)
+                }
+            }
+            snakeLocations[getLevelIndex()] = snakeLocationsLevelTemp
+        }
+    }
 }
 function playerThrowsWeapon () {
     if (hasWeapon) {
@@ -1940,8 +1968,8 @@ sprites.onOverlap(SpriteKind.Player, SpriteKind.Snail, function (sprite, otherSp
 let pointsSprite: Sprite = null
 let pointsTaken = 0
 let weaponSprite: Sprite = null
+let snakeLocationsLevelTemp: number[] = []
 let snailSprite: Sprite = null
-let snailLocationsLevel: number[] = []
 let groundLength = 0
 let snakeImages: Image[] = []
 let snakeImagesAppearing: Image[] = []
@@ -2020,6 +2048,8 @@ let facingRight = false
 let dying = false
 let onGround = false
 let jumping = false
+let snailLocationsLevel: number[] = []
+let snailLocationsLevelTemp: number[] = []
 let snailLocations: number[][] = []
 let snailImages: Image[] = []
 let snailImageDying: Image = null
