@@ -189,6 +189,21 @@ function setRocks () {
         ..fffffffffffffffff.
         `
     rockLocations = [[256, 512], [256, 300]]
+    rockLocationsLevelTemp = []
+    if (testing) {
+        for (let index = 0; index <= getLevelIndex() - 1; index++) {
+            rockLocations.shift()
+        }
+        if (rockLocations.length > 0) {
+            rockLocationsLevel = rockLocations[getLevelIndex()]
+            for (let value of rockLocationsLevel) {
+                if (value >= distanceExploredForLevel) {
+                    rockLocationsLevelTemp.push(value)
+                }
+            }
+            rockLocations[getLevelIndex()] = rockLocationsLevelTemp
+        }
+    }
 }
 function setPlayer () {
     info.setScore(0)
@@ -2048,6 +2063,7 @@ let facingRight = false
 let dying = false
 let onGround = false
 let jumping = false
+let rockLocationsLevelTemp: number[] = []
 let snailLocationsLevel: number[] = []
 let snailLocationsLevelTemp: number[] = []
 let snailLocations: number[][] = []
