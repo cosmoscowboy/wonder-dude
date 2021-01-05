@@ -15,16 +15,10 @@ namespace SpriteKind {
     export const EnemyDying = SpriteKind.create()
     export const Snake = SpriteKind.create()
     export const Tree = SpriteKind.create()
+    export const PlayerDead = SpriteKind.create()
 }
 sprites.onOverlap(SpriteKind.Player, SpriteKind.Snake, function (sprite, otherSprite) {
-    if (!(takingDamage)) {
-        reduceEnergy2 = sprites.readDataNumber(otherSprite, dataDamage)
-        if (reduceEnergy2) {
-            reduceEnergy(reduceEnergy2)
-        }
-        playerTakesDamage(false, otherSprite)
-    }
-    enemyDies(otherSprite, snakeImageDying)
+    playerDies()
 })
 function spawnRocks () {
     rockLocationsLevel = rockLocations[getLevelIndex()]
@@ -51,6 +45,28 @@ function animatePlayer () {
     Math.abs(walkingSpeed) * 1.5,
     character.rule(Predicate.MovingLeft)
     )
+}
+function restartInLevel () {
+    if (info.life() > 1) {
+        dude.setFlag(SpriteFlag.Invisible, true)
+        dude.setKind(SpriteKind.PlayerDead)
+        timer.background(function () {
+            color.startFade(color.originalPalette, color.Black, 1000)
+            color.pauseUntilFadeDone()
+            timer.after(500, function () {
+                color.startFade(color.Black, color.originalPalette, 1000)
+                color.pauseUntilFadeDone()
+                dude.setFlag(SpriteFlag.Invisible, false)
+                dude.setKind(SpriteKind.Player)
+                setPlayerOnGround(currentGroundPieces[0])
+                dying = false
+                setIdleImage()
+            })
+        })
+    } else {
+    	
+    }
+    info.changeLifeBy(-1)
 }
 function increaseDistanceExplored (distance: number) {
     distanceExplored += distance
@@ -205,6 +221,16 @@ function setRocks () {
             rockLocations[getLevelIndex()] = rockLocationsLevelTemp
         }
     }
+}
+function playerHitByEnemyLosesEnergy (enemySprite: Sprite, enemyImageDying: Image) {
+    if (!(takingDamage)) {
+        reduceEnergy2 = sprites.readDataNumber(enemySprite, dataDamage)
+        if (reduceEnergy2) {
+            reduceEnergy(reduceEnergy2)
+        }
+        playerTakesDamage(false, enemySprite)
+    }
+    enemyDies(enemySprite, enemyImageDying)
 }
 function setPlayer () {
     info.setScore(0)
@@ -899,6 +925,31 @@ function createBackgroundSprites () {
     increaseDistanceExplored(aGround.width)
     setNextGap()
 }
+function playerDies () {
+    if (!(dying)) {
+        dying = true
+        animation.stopAnimation(animation.AnimationTypes.All, dude)
+        character.setCharacterAnimationsEnabled(dude, false)
+        dude.setImage(dyingImages[1])
+        controller.moveSprite(dude, 0, 0)
+        dude.vy += -200
+        timer.after(250, function () {
+            animation.runImageAnimation(
+            dude,
+            dyingImages,
+            250,
+            false
+            )
+            timer.after(500, function () {
+                animation.stopAnimation(animation.AnimationTypes.All, dude)
+                dude.setImage(dyingImages[0])
+                timer.after(500, function () {
+                    restartInLevel()
+                })
+            })
+        })
+    }
+}
 controller.right.onEvent(ControllerButtonEvent.Pressed, function () {
     facingRight = true
 })
@@ -909,10 +960,10 @@ sprites.onOverlap(SpriteKind.Player, SpriteKind.Rock, function (sprite, otherSpr
     }
 })
 function setTrees (total: number, startPosition: number) {
-    for (let index = 0; index <= total - 1; index++) {
+    for (let index4 = 0; index4 <= total - 1; index4++) {
         treeSprite = sprites.create(treeImage, SpriteKind.Tree)
         treeSprite.top = 0
-        treeSprite.left = startPosition + treeSprite.width * index
+        treeSprite.left = startPosition + treeSprite.width * index4
         treeSprite.z = -10
         addScreenElement(treeSprite)
     }
@@ -1439,6 +1490,73 @@ function setPlayerImages () {
         ....ff.................
         `
     jumpingImageLeft.flipX()
+    dyingImages = [img`
+        ............5.5........
+        .............455.......
+        ........55554ee........
+        ......555555554........
+        .....55445555554.......
+        ....554455555555.......
+        ....5445555555555......
+        ...555e55e555e555......
+        ..5545de5e55ed555......
+        ...45edded5eddd555.....
+        ...55ed111d111d155.....
+        ..554e11f111f115545....
+        .dd44111111111154dd....
+        dddd4ed111d111d5dddd...
+        dddddedddd1dddd5ddde...
+        feeedeeddd2dddedddef...
+        .ffeddeedddddedddef....
+        ...fedddeeeee5deef.....
+        ....feedddddddeef......
+        .....fedddddddef....dd.
+        ......eedddddde....dddd
+        ......eeeddddde.dddddde
+        .....666eeedde7ddddddef
+        ....6666777777dddeeeeef
+        ...66de6777776eeeffeef.
+        ...fddee67776eeff..ff..
+        ....ddde6677fff........
+        .....ddee66f...........
+        ....ddddeff............
+        ....dddef..............
+        ....ddef...............
+        .....ff................
+        `, img`
+        .......................
+        .............5.5.......
+        ..............4555.....
+        .........55555ee5......
+        .......554445555.......
+        ......54445555555......
+        .....5444555555555.....
+        .....5455555555555.....
+        ....445e55e555e5554....
+        ....445ee5e55ee5554....
+        ....455eded5edde544....
+        ....4eed111d111de44....
+        ....45e111f1f111d44....
+        ....45e111111111154....
+        ....45ed111d111dd54....
+        .....5edddd1ddddd5.....
+        .....45eddd2dddd55.....
+        .dddddd5eedddde5dddd...
+        dddeddd5deeeee5ddddddd.
+        dddeeeeeddddddddeedddd.
+        ddeefffedddddddefeedd..
+        .fff...eedddddde.fff...
+        ...dd66eeeddddde.......
+        ..dddd666eeedde7.......
+        ..ddddd667777776ddd....
+        ..fddddd6777776edddd.dd
+        ...fdddd667776eeeedeedd
+        ....fddff677fffeeeeeddd
+        .....ff..f7f...fffedddd
+        ..........f.....efedddf
+        ..................fddf.
+        ...................ff..
+        `]
 }
 function checkLevelFromDistance () {
     if (distanceExploredForLevel > changeLevelAfterDistanceOf) {
@@ -1486,18 +1604,20 @@ sprites.onOverlap(SpriteKind.Weapon, SpriteKind.Snail, function (sprite, otherSp
     enemyDies(otherSprite, snailImageDying)
 })
 function checkOnGround () {
-    onGround = false
-    for (let value8 of currentGroundPieces) {
-        if (!(onGround)) {
-            if (dude.overlapsWith(value8)) {
-                while (dude.overlapsWith(value8)) {
-                    dude.y += -0.5
+    if (!(dying)) {
+        onGround = false
+        for (let value8 of currentGroundPieces) {
+            if (!(onGround)) {
+                if (dude.overlapsWith(value8)) {
+                    while (dude.overlapsWith(value8)) {
+                        dude.y += -0.5
+                    }
+                    setPlayerOnGround(value8)
                 }
-                setPlayerOnGround(value8)
             }
         }
+        dude.say("" + dude.bottom)
     }
-    dude.say("" + dude.bottom)
 }
 function reduceEnergy (amount: number) {
     playerEnergy.value += amount * -1
@@ -1583,6 +1703,7 @@ function setRandomGround () {
     }
     aGround.left = screenWidth
     aGround.bottom = screenHeight
+    aGround.z = aGround.bottom
     currentGroundPieces.push(aGround)
     increaseDistanceExplored(aGround.width)
 }
@@ -1593,7 +1714,9 @@ function checkPlayerPosition () {
         dude.x = playerStartsAt
     }
     if (dude.top > screenHeight) {
-        game.over(false)
+        if (!(dying)) {
+            playerDies()
+        }
     }
 }
 function spawnSnails () {
@@ -1924,10 +2047,10 @@ function setSnakes () {
         ...........be7bbf........
         ..........bbddbbf........
         `]
-    snakeLocations = [[730], [730]]
+    snakeLocations = [[200], [730]]
     snakeLocationsLevelTemp = []
     if (testing) {
-        for (let index4 = 0; index4 <= getLevelIndex() - 1; index4++) {
+        for (let index42 = 0; index42 <= getLevelIndex() - 1; index42++) {
             snakeLocations.shift()
         }
         if (snakeLocations.length > 0) {
@@ -2088,19 +2211,13 @@ function checkPlayer () {
     checkPlayerOverlaps()
 }
 sprites.onOverlap(SpriteKind.Player, SpriteKind.Snail, function (sprite, otherSprite) {
-    if (!(takingDamage)) {
-        reduceEnergy2 = sprites.readDataNumber(otherSprite, dataDamage)
-        if (reduceEnergy2) {
-            reduceEnergy(reduceEnergy2)
-        }
-        playerTakesDamage(false, otherSprite)
-    }
-    enemyDies(otherSprite, snailImageDying)
+    playerHitByEnemyLosesEnergy(otherSprite, snailImageDying)
 })
 let pointsSprite: Sprite = null
 let pointsTaken = 0
 let weaponSprite: Sprite = null
 let snakeLocationsLevelTemp: number[] = []
+let snakeImageDying: Image = null
 let snailSprite: Sprite = null
 let groundLength = 0
 let snakeImages: Image[] = []
@@ -2117,6 +2234,7 @@ let throwingImagesLeft: Image[] = []
 let throwingImagesRight: Image[] = []
 let idleImagesLeft: Image[] = []
 let treeSprite: Sprite = null
+let dyingImages: Image[] = []
 let ground10: Image = null
 let ground9: Image = null
 let ground8: Image = null
@@ -2168,7 +2286,6 @@ let foodLocationsLevel: number[][] = []
 let hasWeapon = false
 let screenWidth = 0
 let playerEnergy: StatusBarSprite = null
-let currentGroundPieces: Sprite[] = []
 let playerStartsAt = 0
 let idleImagesRight: Image[] = []
 let energyLastLostTime = 0
@@ -2179,9 +2296,11 @@ let weaponThrownEveryMs = 0
 let jumpSpeed = 0
 let throwingWeapon = false
 let facingRight = false
-let dying = false
 let onGround = false
 let jumping = false
+let dataDamage = ""
+let reduceEnergy2 = 0
+let takingDamage = false
 let rockLocationsLevelTemp: number[] = []
 let snailLocationsLevel: number[] = []
 let snailLocationsLevelTemp: number[] = []
@@ -2191,6 +2310,8 @@ let snailImageDying: Image = null
 let snailSpeed = 0
 let anEgg: Sprite = null
 let distanceExplored = 0
+let dying = false
+let currentGroundPieces: Sprite[] = []
 let walkingImagesLeft: Image[] = []
 let walkingSpeed = 0
 let walkingImagesRight: Image[] = []
@@ -2201,10 +2322,6 @@ let distanceExploredForLevel = 0
 let rockLocation = 0
 let rockLocations: number[][] = []
 let rockLocationsLevel: number[] = []
-let snakeImageDying: Image = null
-let dataDamage = ""
-let reduceEnergy2 = 0
-let takingDamage = false
 let testing = false
 setVariables()
 setFood()
