@@ -49,7 +49,6 @@ function animatePlayer () {
 function restartInLevel () {
     if (info.life() > 1) {
         dude.setFlag(SpriteFlag.Invisible, true)
-        dude.setKind(SpriteKind.PlayerDead)
         timer.background(function () {
             color.startFade(color.originalPalette, color.Black, 1000)
             color.pauseUntilFadeDone()
@@ -66,6 +65,8 @@ function restartInLevel () {
                 dying = false
                 setIdleImage()
                 havePlayerMove()
+                playerEnergy.value = 100
+                facingRight = true
             })
         })
     } else {
@@ -941,6 +942,7 @@ function createBackgroundSprites () {
 function playerDies () {
     if (!(dying)) {
         dying = true
+        dude.setKind(SpriteKind.PlayerDead)
         animation.stopAnimation(animation.AnimationTypes.All, dude)
         character.setCharacterAnimationsEnabled(dude, false)
         dude.setImage(dyingImages[1])
@@ -1629,7 +1631,6 @@ function checkOnGround () {
                 }
             }
         }
-        dude.say("" + dude.bottom)
     }
 }
 function reduceEnergy (amount: number) {
@@ -2064,7 +2065,7 @@ function setSnakes () {
         ...........be7bbf........
         ..........bbddbbf........
         `]
-    snakeLocations = [[200], [730]]
+    snakeLocations = [[900], [900]]
     snakeLocationsLevelTemp = []
     if (testing) {
         for (let index42 = 0; index42 <= getLevelIndex() - 1; index42++) {
@@ -2151,6 +2152,14 @@ function playerThrowsWeapon () {
         }
     }
 }
+statusbars.onZero(StatusBarKind.Energy, function (status) {
+    dude.say("No vitality!")
+    controller.moveSprite(dude, 0, 0)
+    timer.after(1000, function () {
+        dude.say("")
+        playerDies()
+    })
+})
 function setPlayerOnGround (ground: Sprite) {
     if (!(throwingWeapon)) {
         if (jumping) {
@@ -2301,7 +2310,6 @@ let foodLocations: number[][][] = []
 let foodLocationsLevel: number[][] = []
 let hasWeapon = false
 let screenWidth = 0
-let playerEnergy: StatusBarSprite = null
 let idleImagesRight: Image[] = []
 let energyLastLostTime = 0
 let energyLostEachTime = 0
@@ -2310,7 +2318,6 @@ let weaponLastThrowTime = 0
 let weaponThrownEveryMs = 0
 let jumpSpeed = 0
 let throwingWeapon = false
-let facingRight = false
 let onGround = false
 let jumping = false
 let dataDamage = ""
@@ -2326,6 +2333,8 @@ let snailImageDying: Image = null
 let snailSpeed = 0
 let anEgg: Sprite = null
 let distanceExplored = 0
+let facingRight = false
+let playerEnergy: StatusBarSprite = null
 let dying = false
 let currentGroundPieces: Sprite[] = []
 let screenElements: Sprite[] = []
