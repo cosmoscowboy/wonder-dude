@@ -53,6 +53,10 @@ function restartInLevel () {
         timer.background(function () {
             color.startFade(color.originalPalette, color.Black, 1000)
             color.pauseUntilFadeDone()
+            for (let value of spritesToDestroyAfterDying) {
+                screenElements.removeAt(screenElements.indexOf(value))
+                value.destroy()
+            }
             timer.after(500, function () {
                 color.startFade(color.Black, color.originalPalette, 1000)
                 color.pauseUntilFadeDone()
@@ -61,6 +65,7 @@ function restartInLevel () {
                 setPlayerOnGround(currentGroundPieces[0])
                 dying = false
                 setIdleImage()
+                havePlayerMove()
             })
         })
     } else {
@@ -183,6 +188,13 @@ function setSnails () {
 controller.B.onEvent(ControllerButtonEvent.Pressed, function () {
     playerJumps()
 })
+function havePlayerMove () {
+    controller.moveSprite(dude, walkingSpeed, 0)
+    dude.x = playerStartsAt
+    setPlayerOnGround(currentGroundPieces[0])
+    animatePlayer()
+    dude.ay = 450
+}
 function setRocks () {
     rockImage = img`
         .....fffff..........
@@ -250,11 +262,7 @@ function setPlayer () {
     setPlayerImages()
     dude = sprites.create(idleImagesRight[0], SpriteKind.Player)
     walkingSpeed = 75
-    controller.moveSprite(dude, walkingSpeed, 0)
-    dude.x = playerStartsAt
-    setPlayerOnGround(currentGroundPieces[0])
-    animatePlayer()
-    dude.ay = 450
+    havePlayerMove()
     playerEnergy = statusbars.create(60, 8, StatusBarKind.Energy)
     playerEnergy.x = screenWidth / 2
     playerEnergy.top = 0
@@ -284,6 +292,7 @@ function spawnFood () {
             foodSprite.x = screenWidth + foodLocationSet[2]
             foodSprite.bottom = foodLocationSet[3]
             addScreenElement(foodSprite)
+            addSpriteToBeRemovedWhenDying(foodSprite)
         }
     }
 }
@@ -326,6 +335,9 @@ function removeScreenElement (aSprite: Sprite, destroy: boolean) {
         aSprite.destroy()
     }
 }
+function addSpriteToBeRemovedWhenDying (aSprite: Sprite) {
+    spritesToDestroyAfterDying.push(aSprite)
+}
 // levelDisplay = textsprite.create("")
 // levelDisplay.top = 0
 // levelDisplay.left = 30
@@ -354,6 +366,7 @@ function setVariables () {
     dataSpeedX = "speedX"
     dataDamage = "damage"
     screenElements = []
+    spritesToDestroyAfterDying = []
 }
 function setFood () {
     foodImages = [img`
@@ -1660,6 +1673,7 @@ function spawnSnakes () {
             sprites.setDataNumber(snakeSprite, dataDamage, 30)
             sprites.setDataNumber(snakeSprite, dataPoints, 30)
             placeOnGround(snakeSprite, screenWidth / 2)
+            addSpriteToBeRemovedWhenDying(snakeSprite)
             animation.runImageAnimation(
             snakeSprite,
             snakeImagesAppearing,
@@ -1736,6 +1750,7 @@ function spawnSnails () {
             true
             )
             placeOnGroundOutsideScreen(snailSprite)
+            addSpriteToBeRemovedWhenDying(snailSprite)
         }
     }
 }
@@ -1745,9 +1760,11 @@ function checkPlayerOverlaps () {
     }
 }
 sprites.onOverlap(SpriteKind.Player, SpriteKind.Food, function (sprite, otherSprite) {
-    showPoints(otherSprite)
-    addEnergy(otherSprite)
-    removeScreenElement(otherSprite, true)
+    if (!(dying)) {
+        showPoints(otherSprite)
+        addEnergy(otherSprite)
+        removeScreenElement(otherSprite, true)
+    }
 })
 function setNextGap () {
     if (groundHasGaps) {
@@ -2270,7 +2287,6 @@ let groundHasGapsAfterLevel = 0
 let area = 0
 let level = 0
 let screenHeight = 0
-let screenElements: Sprite[] = []
 let weapon: Sprite = null
 let foodEnergies: number[] = []
 let dataEnergy = ""
@@ -2286,7 +2302,6 @@ let foodLocationsLevel: number[][] = []
 let hasWeapon = false
 let screenWidth = 0
 let playerEnergy: StatusBarSprite = null
-let playerStartsAt = 0
 let idleImagesRight: Image[] = []
 let energyLastLostTime = 0
 let energyLostEachTime = 0
@@ -2302,6 +2317,7 @@ let dataDamage = ""
 let reduceEnergy2 = 0
 let takingDamage = false
 let rockLocationsLevelTemp: number[] = []
+let playerStartsAt = 0
 let snailLocationsLevel: number[] = []
 let snailLocationsLevelTemp: number[] = []
 let snailLocations: number[][] = []
@@ -2312,6 +2328,8 @@ let anEgg: Sprite = null
 let distanceExplored = 0
 let dying = false
 let currentGroundPieces: Sprite[] = []
+let screenElements: Sprite[] = []
+let spritesToDestroyAfterDying: Sprite[] = []
 let walkingImagesLeft: Image[] = []
 let walkingSpeed = 0
 let walkingImagesRight: Image[] = []
