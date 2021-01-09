@@ -16,6 +16,7 @@ namespace SpriteKind {
     export const Snake = SpriteKind.create()
     export const Tree = SpriteKind.create()
     export const PlayerDead = SpriteKind.create()
+    export const Spider = SpriteKind.create()
 }
 sprites.onOverlap(SpriteKind.Player, SpriteKind.Snake, function (sprite, otherSprite) {
     playerDies()
@@ -365,6 +366,7 @@ function setVariables () {
     dataPoints = "points"
     dataEnergy = "energy"
     dataSpeedX = "speedX"
+    dataSpeedY = "speedY"
     dataDamage = "damage"
     screenElements = []
     spritesToDestroyAfterDying = []
@@ -415,7 +417,7 @@ function setFood () {
         `]
     foodPoints = [50, 50, 100]
     foodEnergies = [5, 5, 10]
-    foodLocations = [[[165, 0, -20, 48], [224, 1, -20, 104], [240, 2, -20, 75]], [[160, 0, -20, 48], [224, 1, -20, 104]]]
+    foodLocations = [[[165, 0, -20, 48], [224, 1, -20, 104], [240, 2, -20, 75], [832, 0, -20, 48]], [[160, 0, -20, 48], [224, 1, -20, 104]]]
     foodLocationsLevel = [[165, 0, -20, 48], [224, 1, -20, 104], [240, 2, -20, 75]]
     foodLocationsLevel = []
     foodLocationsLevelTemp = [[165, 0, -20, 48], [224, 1, -20, 104], [240, 2, -20, 75]]
@@ -460,9 +462,11 @@ controller.left.onEvent(ControllerButtonEvent.Pressed, function () {
     facingRight = false
 })
 function reduceEnergyOverTime () {
-    if (energyLastLostTime < game.runtime()) {
-        energyLastLostTime = game.runtime() + eneryLostEveryMs
-        playerEnergy.value += energyLostEachTime * -1
+    if (!(dying)) {
+        if (energyLastLostTime < game.runtime()) {
+            energyLastLostTime = game.runtime() + eneryLostEveryMs
+            playerEnergy.value += energyLostEachTime * -1
+        }
     }
 }
 function getLevelIndex () {
@@ -943,6 +947,7 @@ function playerDies () {
     if (!(dying)) {
         dying = true
         dude.setKind(SpriteKind.PlayerDead)
+        playerEnergy.value = 0
         animation.stopAnimation(animation.AnimationTypes.All, dude)
         character.setCharacterAnimationsEnabled(dude, false)
         dude.setImage(dyingImages[1])
@@ -968,12 +973,37 @@ function playerDies () {
 controller.right.onEvent(ControllerButtonEvent.Pressed, function () {
     facingRight = true
 })
+function spawnSpiders () {
+    spiderLocationsLevel = spiderLocations[getLevelIndex()]
+    if (spiderLocationsLevel.length > 0) {
+        anEnemyLocation = spiderLocationsLevel[0]
+        if (anEnemyLocation <= distanceExploredForLevel) {
+            anEnemyLocation = spiderLocationsLevel.removeAt(0)
+            spiderSprite = sprites.create(spiderImages[0], SpriteKind.Spider)
+            sprites.setDataNumber(spiderSprite, dataSpeedY, spiderSpeed)
+            sprites.setDataNumber(spiderSprite, dataPoints, 20)
+            animation.runImageAnimation(
+            spiderSprite,
+            spiderImages,
+            500,
+            true
+            )
+            placeOnGroundOutsideScreen(spiderSprite)
+            addSpriteToBeRemovedWhenDying(spiderSprite)
+        }
+    }
+}
 sprites.onOverlap(SpriteKind.Player, SpriteKind.Rock, function (sprite, otherSprite) {
     if (!(takingDamage)) {
         reduceEnergy(10)
         playerTakesDamage(false, otherSprite)
     }
 })
+function spawnEnemies () {
+    spawnSnails()
+    spawnSnakes()
+    spawnSpiders()
+}
 function setTrees (total: number, startPosition: number) {
     for (let index4 = 0; index4 <= total - 1; index4++) {
         treeSprite = sprites.create(treeImage, SpriteKind.Tree)
@@ -1633,8 +1663,94 @@ function checkOnGround () {
         }
     }
 }
+function setSpiders () {
+    spiderSpeed = 30
+    spiderImageDying = img`
+        ........4b5........
+        .......4b555.......
+        ......224bddd......
+        .....224bddddd.....
+        .....44bdddd55.....
+        ....44bbddd5555....
+        ....2244bbbbddd....
+        ....2244bbbbddd....
+        ....44bbdddd555....
+        .....4bbbddd55.....
+        ....7722bb55177....
+        ...7...72227...7...
+        ..7..77.445.77..7..
+        ..7.7..74457..7.7..
+        ...7..7..f..7..7...
+        ...7.7..2f2..7.7...
+        ...7.7.55.55.7.7...
+        ...7.7.5...5.7.7...
+        .....7..5.5..7.....
+        `
+    spiderImages = [img`
+        ........cc6........
+        .......cc866.......
+        ......4455551......
+        .....445555551.....
+        .....cc8888866.....
+        ....ccc88888666....
+        ....44555555551....
+        ....44555555551....
+        ....ccc88888666....
+        ..55bcc8888666b55..
+        .5..55445555155..5.
+        5......5c885......5
+        5....55b445b55....5
+        ...55..54455..55...
+        ..5...5..f..5...5..
+        .5...5..2f2..5...5.
+        .5..5..55.55..5..5.
+        ....5..5...5..5....
+        ....5...5.5...5....
+        `, img`
+        ........cc6........
+        .......cc866.......
+        ......4455551......
+        .....445555551.....
+        .....cc8888866.....
+        ....ccc88888666....
+        ....44555555551....
+        ....44555555551....
+        ....ccc88888666....
+        .....cc8888666.....
+        ....55445555155....
+        ..55...5c885...55..
+        .5...55b445b55...5.
+        .5..5..54455..5..5.
+        ...5..5..f..5..5...
+        ..5..5..2f2..5..5..
+        ..5..5.55.55.5..5..
+        ..5..5.5...5.5..5..
+        .....5..5.5..5.....
+        `]
+    spiderLocations = [[1248, 1312], [1248, 1312]]
+    spiderLocationsLevelTemp = []
+    if (testing) {
+        for (let index = 0; index <= getLevelIndex() - 1; index++) {
+            spiderLocations.shift()
+        }
+        if (spiderLocations.length > 0) {
+            spiderLocationsLevel = spiderLocations[getLevelIndex()]
+            for (let value of spiderLocationsLevel) {
+                if (value >= distanceExploredForLevel) {
+                    spiderLocationsLevelTemp.push(value)
+                }
+            }
+            spiderLocations[getLevelIndex()] = spiderLocationsLevelTemp
+        }
+    }
+}
 function reduceEnergy (amount: number) {
     playerEnergy.value += amount * -1
+}
+function setEnemies () {
+    setSnails()
+    setSnakes()
+    setSpiders()
 }
 function spawnSnakes () {
     snakeLocationsLevel = snakeLocations[getLevelIndex()]
@@ -1733,6 +1849,7 @@ function checkPlayerPosition () {
             playerDies()
         }
     }
+    dude.say(distanceExploredForLevel)
 }
 function spawnSnails () {
     snailLocationsLevel = snailLocations[getLevelIndex()]
@@ -2153,12 +2270,14 @@ function playerThrowsWeapon () {
     }
 }
 statusbars.onZero(StatusBarKind.Energy, function (status) {
-    dude.say("No vitality!")
-    controller.moveSprite(dude, 0, 0)
-    timer.after(1000, function () {
-        dude.say("")
-        playerDies()
-    })
+    if (!(dying)) {
+        dude.say("No vitality!")
+        controller.moveSprite(dude, 0, 0)
+        timer.after(1000, function () {
+            dude.say("")
+            playerDies()
+        })
+    }
 })
 function setPlayerOnGround (ground: Sprite) {
     if (!(throwingWeapon)) {
@@ -2249,9 +2368,10 @@ let groundLength = 0
 let snakeImages: Image[] = []
 let snakeImagesAppearing: Image[] = []
 let snakeSprite: Sprite = null
-let anEnemyLocation = 0
 let snakeLocations: number[][] = []
 let snakeLocationsLevel: number[] = []
+let spiderLocationsLevelTemp: number[] = []
+let spiderImageDying: Image = null
 let jumpingImageLeft: Image = null
 let jumpingImageRight: Image = null
 let fallingImagesLeft: Image[] = []
@@ -2260,6 +2380,12 @@ let throwingImagesLeft: Image[] = []
 let throwingImagesRight: Image[] = []
 let idleImagesLeft: Image[] = []
 let treeSprite: Sprite = null
+let spiderSpeed = 0
+let spiderImages: Image[] = []
+let spiderSprite: Sprite = null
+let anEnemyLocation = 0
+let spiderLocations: number[][] = []
+let spiderLocationsLevel: number[] = []
 let dyingImages: Image[] = []
 let ground10: Image = null
 let ground9: Image = null
@@ -2283,6 +2409,7 @@ let weaponImagesRight: Image[] = []
 let nextGroundPiece: Sprite = null
 let aGround: Sprite = null
 let foodLocationsLevelTemp: number[][] = []
+let dataSpeedY = ""
 let dataSpeedX = ""
 let gapMaximum = 0
 let gapMinimum = 0
@@ -2353,8 +2480,7 @@ let testing = false
 setVariables()
 setFood()
 setRocks()
-setSnails()
-setSnakes()
+setEnemies()
 createBackgroundSprites()
 setPlayer()
 defineImages()
@@ -2376,8 +2502,7 @@ game.onUpdate(function () {
         checkPlayer()
         spawnFood()
         spawnRocks()
-        spawnSnails()
-        spawnSnakes()
+        spawnEnemies()
         removeDyingEnemies()
     }
 })
