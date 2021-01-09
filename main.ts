@@ -104,6 +104,9 @@ function setEgg (positionX: number) {
         `, SpriteKind.Egg)
     placeOnGround(anEgg, positionX)
 }
+sprites.onOverlap(SpriteKind.Player, SpriteKind.Spider, function (sprite, otherSprite) {
+    playerDies()
+})
 function setSnails () {
     snailSpeed = -5
     snailImageDying = img`
@@ -236,6 +239,17 @@ function setRocks () {
         }
     }
 }
+function checkEnemyLocations () {
+    for (let value of sprites.allOfKind(SpriteKind.Spider)) {
+        if (value.bottom >= maximumHeightForItems) {
+            value.bottom = maximumHeightForItems - 2
+            value.vy = value.vy * -1
+        } else if (value.bottom <= minimumHeightForItems) {
+            value.bottom = minimumHeightForItems + 2
+            value.vy = value.vy * -1
+        }
+    }
+}
 function playerHitByEnemyLosesEnergy (enemySprite: Sprite, enemyImageDying: Image) {
     if (!(takingDamage)) {
         reduceEnergy2 = sprites.readDataNumber(enemySprite, dataDamage)
@@ -361,6 +375,9 @@ function setVariables () {
     changeLevelAfterDistanceOf = 50
     playerStartsAt = 15
     playerCannotMovePast = 40
+    minimumHeightForItems = 48
+    maximumHeightForItems = 104
+    playerTop = 72
     gapMinimum = 16
     gapMaximum = 55
     dataPoints = "points"
@@ -368,6 +385,7 @@ function setVariables () {
     dataSpeedX = "speedX"
     dataSpeedY = "speedY"
     dataDamage = "damage"
+    dataCanMoveUpAndDown = "canMoveUpAndDown"
     screenElements = []
     spritesToDestroyAfterDying = []
 }
@@ -417,7 +435,7 @@ function setFood () {
         `]
     foodPoints = [50, 50, 100]
     foodEnergies = [5, 5, 10]
-    foodLocations = [[[165, 0, -20, 48], [224, 1, -20, 104], [240, 2, -20, 75], [832, 0, -20, 48]], [[160, 0, -20, 48], [224, 1, -20, 104]]]
+    foodLocations = [[[165, 0, -20, maximumHeightForItems], [224, 1, -20, 104], [240, 2, -20, 75], [832, 0, -20, maximumHeightForItems]], [[160, 0, -20, maximumHeightForItems], [224, 1, -20, 104]]]
     foodLocationsLevel = [[165, 0, -20, 48], [224, 1, -20, 104], [240, 2, -20, 75]]
     foodLocationsLevel = []
     foodLocationsLevelTemp = [[165, 0, -20, 48], [224, 1, -20, 104], [240, 2, -20, 75]]
@@ -980,15 +998,23 @@ function spawnSpiders () {
         if (anEnemyLocation <= distanceExploredForLevel) {
             anEnemyLocation = spiderLocationsLevel.removeAt(0)
             spiderSprite = sprites.create(spiderImages[0], SpriteKind.Spider)
+            spiderSprite.bottom = maximumHeightForItems
             sprites.setDataNumber(spiderSprite, dataSpeedY, spiderSpeed)
             sprites.setDataNumber(spiderSprite, dataPoints, 20)
+            sprites.setDataBoolean(spiderSprite, dataCanMoveUpAndDown, true)
+            if (sprites.readDataBoolean(spiderSprite, dataCanMoveUpAndDown)) {
+                spriteBottom = getYBetweenTopAndGround()
+            } else {
+                spriteBottom = getYBetweenPlayerTopAndGround()
+            }
+            spiderSprite.vy = spiderSpeed
             animation.runImageAnimation(
             spiderSprite,
             spiderImages,
-            500,
+            250,
             true
             )
-            placeOnGroundOutsideScreen(spiderSprite)
+            placeOutsideScreen(spiderSprite, spriteBottom)
             addSpriteToBeRemovedWhenDying(spiderSprite)
         }
     }
@@ -1603,6 +1629,10 @@ function setPlayerImages () {
         ...................ff..
         `]
 }
+sprites.onOverlap(SpriteKind.Weapon, SpriteKind.Spider, function (sprite, otherSprite) {
+    info.changeScoreBy(sprites.readDataNumber(otherSprite, dataPoints))
+    enemyDies(otherSprite, spiderImageDying)
+})
 function checkLevelFromDistance () {
     if (distanceExploredForLevel > changeLevelAfterDistanceOf) {
         level += 1
@@ -1664,7 +1694,7 @@ function checkOnGround () {
     }
 }
 function setSpiders () {
-    spiderSpeed = 30
+    spiderSpeed = 20
     spiderImageDying = img`
         ........4b5........
         .......4b555.......
@@ -1851,6 +1881,9 @@ function checkPlayerPosition () {
     }
     dude.say(distanceExploredForLevel)
 }
+function getYBetweenTopAndGround () {
+    return randint(minimumHeightForItems, maximumHeightForItems)
+}
 function spawnSnails () {
     snailLocationsLevel = snailLocations[getLevelIndex()]
     if (snailLocationsLevel.length > 0) {
@@ -1884,6 +1917,11 @@ sprites.onOverlap(SpriteKind.Player, SpriteKind.Food, function (sprite, otherSpr
         removeScreenElement(otherSprite, true)
     }
 })
+function placeOutsideScreen (aSprite: Sprite, bottom: number) {
+    aSprite.bottom = bottom
+    aSprite.left = screenWidth
+    addScreenElement(aSprite)
+}
 function setNextGap () {
     if (groundHasGaps) {
         gap = randint(gapMinimum, gapMaximum)
@@ -1895,6 +1933,9 @@ function placeOnGroundOutsideScreen (aSprite: Sprite) {
     aSprite.bottom = currentGroundPieces[0].top
     aSprite.left = screenWidth
     addScreenElement(aSprite)
+}
+function getYBetweenPlayerTopAndGround () {
+    return randint(playerTop + 3, maximumHeightForItems)
 }
 function playerGetsEgg () {
     if (!(canGetWeapon)) {
@@ -2380,6 +2421,7 @@ let throwingImagesLeft: Image[] = []
 let throwingImagesRight: Image[] = []
 let idleImagesLeft: Image[] = []
 let treeSprite: Sprite = null
+let spriteBottom = 0
 let spiderSpeed = 0
 let spiderImages: Image[] = []
 let spiderSprite: Sprite = null
@@ -2409,10 +2451,12 @@ let weaponImagesRight: Image[] = []
 let nextGroundPiece: Sprite = null
 let aGround: Sprite = null
 let foodLocationsLevelTemp: number[][] = []
+let dataCanMoveUpAndDown = ""
 let dataSpeedY = ""
 let dataSpeedX = ""
 let gapMaximum = 0
 let gapMinimum = 0
+let playerTop = 0
 let playerCannotMovePast = 0
 let changeLevelAfterDistanceOf = 0
 let canGetWeapon = false
@@ -2450,6 +2494,8 @@ let jumping = false
 let dataDamage = ""
 let reduceEnergy2 = 0
 let takingDamage = false
+let minimumHeightForItems = 0
+let maximumHeightForItems = 0
 let rockLocationsLevelTemp: number[] = []
 let playerStartsAt = 0
 let snailLocationsLevel: number[] = []
@@ -2504,5 +2550,6 @@ game.onUpdate(function () {
         spawnRocks()
         spawnEnemies()
         removeDyingEnemies()
+        checkEnemyLocations()
     }
 })
