@@ -21,13 +21,23 @@ namespace SpriteKind {
 sprites.onOverlap(SpriteKind.Player, SpriteKind.Snake, function (sprite, otherSprite) {
     playerDies()
 })
+function placeTrees (total: number, startPosition: number) {
+    for (let index4 = 0; index4 <= total - 1; index4++) {
+        treeSprite = sprites.create(treeImage, SpriteKind.Tree)
+        treeSprite.top = 0
+        treeSprite.left = startPosition + treeSprite.width * index4
+        treeSprite.z = -10
+        addScreenElement(treeSprite)
+    }
+}
 function spawnRocks () {
     rockLocationsLevel = rockLocations[getLevelIndex()]
     if (rockLocationsLevel.length > 0) {
-        rockLocation = rockLocationsLevel[0]
-        if (rockLocation <= distanceExploredForLevel) {
-            rockLocation = rockLocationsLevel.removeAt(0)
+        aLocation = rockLocationsLevel[0]
+        if (aLocation <= distanceExploredForLevel) {
+            aLocation = rockLocationsLevel.removeAt(0)
             rockSprite = sprites.create(rockImage, SpriteKind.Rock)
+            rockSprite.z = -1
             placeOnGroundOutsideScreen(rockSprite)
         }
     }
@@ -717,6 +727,7 @@ function defineImages () {
         777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777
         777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777
         `
+    treeWidth = 180
 }
 function getNextGroundPiece () {
     groundMaximumX = 0
@@ -771,6 +782,18 @@ function moveScreenElements () {
             } else {
                 value6.vx = gameSpeed
             }
+        }
+    }
+}
+function spawnTrees () {
+    treeLocationsLevel = treeLocations[getLevelIndex()]
+    if (treeLocationsLevel.length > 0) {
+        aLocation = treeLocationsLevel[0]
+        if (aLocation <= distanceExploredForLevel) {
+            aLocation = treeLocationsLevel.removeAt(0)
+            treeSprite = sprites.create(treeImage, SpriteKind.Tree)
+            treeSprite.z = -10
+            placeOnGroundOutsideScreen(treeSprite)
         }
     }
 }
@@ -1030,13 +1053,30 @@ function spawnEnemies () {
     spawnSnakes()
     spawnSpiders()
 }
-function setTrees (total: number, startPosition: number) {
-    for (let index4 = 0; index4 <= total - 1; index4++) {
-        treeSprite = sprites.create(treeImage, SpriteKind.Tree)
-        treeSprite.top = 0
-        treeSprite.left = startPosition + treeSprite.width * index4
-        treeSprite.z = -10
-        addScreenElement(treeSprite)
+function setTrees () {
+    treeLocations = [[
+    224,
+    420,
+    616,
+    812,
+    1008,
+    1204,
+    1400
+    ], [256, 300]]
+    treeLocationsLevelTemp = []
+    if (testing) {
+        for (let index2 = 0; index2 <= getLevelIndex() - 1; index2++) {
+            treeLocations.shift()
+        }
+        if (treeLocations.length > 0) {
+            treeLocationsLevel = treeLocations[getLevelIndex()]
+            for (let value2 of treeLocationsLevel) {
+                if (value2 >= distanceExploredForLevel) {
+                    treeLocationsLevelTemp.push(value2)
+                }
+            }
+            treeLocations[getLevelIndex()] = treeLocationsLevelTemp
+        }
     }
 }
 function setPlayerImages () {
@@ -2420,7 +2460,7 @@ let fallingImagesRight: Image[] = []
 let throwingImagesLeft: Image[] = []
 let throwingImagesRight: Image[] = []
 let idleImagesLeft: Image[] = []
-let treeSprite: Sprite = null
+let treeLocationsLevelTemp: number[] = []
 let spriteBottom = 0
 let spiderSpeed = 0
 let spiderImages: Image[] = []
@@ -2439,11 +2479,13 @@ let ground4: Image = null
 let ground3: Image = null
 let ground2: Image = null
 let ground1: Image = null
+let treeLocations: number[][] = []
+let treeLocationsLevel: number[] = []
 let spriteSpeedX = 0
 let gameSpeed = 0
 let gap = 0
 let groundMaximumX = 0
-let treeImage: Image = null
+let treeWidth = 0
 let pointsImages: Image[] = []
 let anImage: Image = null
 let weaponImagesLeft: Image[] = []
@@ -2519,13 +2561,16 @@ let dude: Sprite = null
 let rockImage: Image = null
 let rockSprite: Sprite = null
 let distanceExploredForLevel = 0
-let rockLocation = 0
+let aLocation = 0
 let rockLocations: number[][] = []
 let rockLocationsLevel: number[] = []
+let treeImage: Image = null
+let treeSprite: Sprite = null
 let testing = false
 setVariables()
 setFood()
 setRocks()
+setTrees()
 setEnemies()
 createBackgroundSprites()
 setPlayer()
@@ -2535,7 +2580,7 @@ if (testing) {
 } else {
     setEgg(scene.screenWidth() * 2)
 }
-setTrees(5, 0)
+placeTrees(1, 0)
 game.onUpdate(function () {
     if (showingIntroduction) {
     	
@@ -2548,6 +2593,7 @@ game.onUpdate(function () {
         checkPlayer()
         spawnFood()
         spawnRocks()
+        spawnTrees()
         spawnEnemies()
         removeDyingEnemies()
         checkEnemyLocations()
