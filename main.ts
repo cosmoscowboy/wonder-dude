@@ -282,8 +282,8 @@ function setPlayer () {
     jumpSpeed = -200
     weaponThrownEveryMs = 300
     weaponLastThrowTime = game.runtime()
-    eneryLostEveryMs = 1000
-    energyLostEachTime = 2
+    eneryLostEveryMs = 250
+    energyLostEachTime = 1
     energyLastLostTime = game.runtime() + eneryLostEveryMs
     setPlayerImages()
     dude = sprites.create(idleImagesRight[0], SpriteKind.Player)
@@ -445,12 +445,20 @@ function setFood () {
         `]
     foodPoints = [50, 50, 100]
     foodEnergies = [5, 5, 10]
-    foodLocations = [[[165, 0, -20, maximumHeightForItems], [224, 1, -20, 104], [240, 2, -20, 75], [832, 0, -20, maximumHeightForItems]], [[160, 0, -20, maximumHeightForItems], [224, 1, -20, 104]]]
-    foodLocationsLevel = [[165, 0, -20, 48], [224, 1, -20, 104], [240, 2, -20, 75]]
+    foodLocations = [[
+    [160, 0, -20, maximumHeightForItems],
+    [224, 1, -20, 104],
+    [240, 2, -20, 55],
+    [800, 1, -20, 66],
+    [832, 0, -20, maximumHeightForItems],
+    [1056, 2, -40, 80],
+    [1088, 1, -40, minimumHeightForItems]
+    ], [[160, 0, -20, maximumHeightForItems], [224, 1, -20, 104]]]
+    foodLocationsLevel = [[165], [224], [240]]
     foodLocationsLevel = []
-    foodLocationsLevelTemp = [[165, 0, -20, 48], [224, 1, -20, 104], [240, 2, -20, 75]]
+    foodLocationsLevelTemp = [[165], [224], [240]]
     foodLocationsLevelTemp = []
-    foodLocationSet = [165, 0, -20, 48]
+    foodLocationSet = [165]
     foodLocationSet = []
     if (testing) {
         for (let index3 = 0; index3 <= getLevelIndex() - 1; index3++) {
@@ -1055,13 +1063,13 @@ function spawnEnemies () {
 }
 function setTrees () {
     treeLocations = [[
-    224,
-    420,
-    616,
-    812,
-    1008,
-    1204,
-    1400
+    192,
+    384,
+    576,
+    768,
+    960,
+    1152,
+    1344
     ], [256, 300]]
     treeLocationsLevelTemp = []
     if (testing) {
@@ -1671,6 +1679,7 @@ function setPlayerImages () {
 }
 sprites.onOverlap(SpriteKind.Weapon, SpriteKind.Spider, function (sprite, otherSprite) {
     info.changeScoreBy(sprites.readDataNumber(otherSprite, dataPoints))
+    sprite.destroy()
     enemyDies(otherSprite, spiderImageDying)
 })
 function checkLevelFromDistance () {
@@ -1716,6 +1725,7 @@ function playerTakesDamage (destroySprite: boolean, aSprite: Sprite) {
 }
 sprites.onOverlap(SpriteKind.Weapon, SpriteKind.Snail, function (sprite, otherSprite) {
     info.changeScoreBy(sprites.readDataNumber(otherSprite, dataPoints))
+    sprite.destroy()
     enemyDies(otherSprite, snailImageDying)
 })
 function checkOnGround () {
@@ -1797,7 +1807,7 @@ function setSpiders () {
         ..5..5.5...5.5..5..
         .....5..5.5..5.....
         `]
-    spiderLocations = [[1248, 1312], [1248, 1312]]
+    spiderLocations = [[1104, 1152], [1248, 1312]]
     spiderLocationsLevelTemp = []
     if (testing) {
         for (let index = 0; index <= getLevelIndex() - 1; index++) {
@@ -1919,7 +1929,6 @@ function checkPlayerPosition () {
             playerDies()
         }
     }
-    dude.say(distanceExploredForLevel)
 }
 function getYBetweenTopAndGround () {
     return randint(minimumHeightForItems, maximumHeightForItems)
@@ -2263,7 +2272,7 @@ function setSnakes () {
         ...........be7bbf........
         ..........bbddbbf........
         `]
-    snakeLocations = [[900], [900]]
+    snakeLocations = [[902], [902]]
     snakeLocationsLevelTemp = []
     if (testing) {
         for (let index42 = 0; index42 <= getLevelIndex() - 1; index42++) {
@@ -2281,7 +2290,7 @@ function setSnakes () {
     }
 }
 function playerThrowsWeapon () {
-    if (hasWeapon) {
+    if (hasWeapon && !(dying)) {
         if (weaponLastThrowTime < game.runtime()) {
             throwingWeapon = true
             character.setCharacterAnimationsEnabled(dude, false)
@@ -2430,6 +2439,7 @@ function playerJumps () {
 }
 sprites.onOverlap(SpriteKind.Weapon, SpriteKind.Snake, function (sprite, otherSprite) {
     info.changeScoreBy(sprites.readDataNumber(otherSprite, dataPoints))
+    sprite.destroy()
     enemyDies(otherSprite, snakeImageDying)
 })
 function checkPlayer () {
