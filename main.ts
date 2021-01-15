@@ -42,6 +42,17 @@ function spawnRocks () {
         }
     }
 }
+function checkEnemyPosition () {
+    for (let value of sprites.allOfKind(SpriteKind.Spider)) {
+        if (value.bottom >= maximumHeightForItems) {
+            value.bottom = maximumHeightForItems - 2
+            value.vy = value.vy * -1
+        } else if (value.bottom <= minimumHeightForItems) {
+            value.bottom = minimumHeightForItems + 2
+            value.vy = value.vy * -1
+        }
+    }
+}
 // Top line of player jump 22 (jumps 50 pixels)
 function animatePlayer () {
     character.loopFrames(
@@ -72,7 +83,7 @@ function restartInLevel () {
                 color.pauseUntilFadeDone()
                 dude.setFlag(SpriteFlag.Invisible, false)
                 dude.setKind(SpriteKind.Player)
-                setPlayerOnGround(currentGroundPieces[0])
+                setPlayerOnGround(groundPieces[0])
                 dying = false
                 setIdleImage()
                 havePlayerMove()
@@ -206,7 +217,7 @@ controller.B.onEvent(ControllerButtonEvent.Pressed, function () {
 function havePlayerMove () {
     controller.moveSprite(dude, walkingSpeed, 0)
     dude.x = playerStartsAt
-    setPlayerOnGround(currentGroundPieces[0])
+    setPlayerOnGround(groundPieces[0])
     animatePlayer()
     dude.ay = 450
 }
@@ -232,7 +243,7 @@ function setRocks () {
         .f7ff7777777fffff7ff
         ..fffffffffffffffff.
         `
-    rockLocations = [[256, 512], [256, 300]]
+    rockLocations = [[256, 512, 1072], [256, 300]]
     rockLocationsLevelTemp = []
     if (testing) {
         for (let index2 = 0; index2 <= getLevelIndex() - 1; index2++) {
@@ -246,17 +257,6 @@ function setRocks () {
                 }
             }
             rockLocations[getLevelIndex()] = rockLocationsLevelTemp
-        }
-    }
-}
-function checkEnemyLocations () {
-    for (let value of sprites.allOfKind(SpriteKind.Spider)) {
-        if (value.bottom >= maximumHeightForItems) {
-            value.bottom = maximumHeightForItems - 2
-            value.vy = value.vy * -1
-        } else if (value.bottom <= minimumHeightForItems) {
-            value.bottom = minimumHeightForItems + 2
-            value.vy = value.vy * -1
         }
     }
 }
@@ -280,7 +280,7 @@ function setPlayer () {
     throwingWeapon = false
     takingDamage = false
     jumpSpeed = -200
-    weaponThrownEveryMs = 300
+    weaponThrownEveryMs = 200
     weaponLastThrowTime = game.runtime()
     eneryLostEveryMs = 250
     energyLostEachTime = 1
@@ -350,9 +350,9 @@ sprites.onOverlap(SpriteKind.EggTaken, SpriteKind.Ground, function (sprite, othe
     anEgg.destroy(effects.disintegrate, 500)
 })
 function placeOnGround (aSprite: Sprite, distanceFromPlayer: number) {
-    aSprite.bottom = currentGroundPieces[0].top
+    aSprite.bottom = groundPieces[0].top
     aSprite.x = dude.x + Math.abs(distanceFromPlayer)
-    aSprite.bottom = currentGroundPieces[0].top
+    aSprite.bottom = groundPieces[0].top
     addScreenElement(aSprite)
 }
 function removeScreenElement (aSprite: Sprite, destroy: boolean) {
@@ -478,17 +478,17 @@ function setFood () {
     }
 }
 function checkGroundOffScreen () {
-    for (let value22 of currentGroundPieces) {
+    for (let value22 of groundPieces) {
         if (value22.right < 0) {
-            currentGroundPieces.removeAt(currentGroundPieces.indexOf(value22))
+            groundPieces.removeAt(groundPieces.indexOf(value22))
             value22.destroy()
         }
     }
     if (!(groundHasGaps)) {
-        for (let index32 = 0; index32 <= currentGroundPieces.length - 1; index32++) {
-            aGround = currentGroundPieces[index32]
-            if (index32 + 1 < currentGroundPieces.length) {
-                nextGroundPiece = currentGroundPieces[index32 + 1]
+        for (let index32 = 0; index32 <= groundPieces.length - 1; index32++) {
+            aGround = groundPieces[index32]
+            if (index32 + 1 < groundPieces.length) {
+                nextGroundPiece = groundPieces[index32 + 1]
                 nextGroundPiece.left = aGround.right
             }
         }
@@ -739,7 +739,7 @@ function defineImages () {
 }
 function getNextGroundPiece () {
     groundMaximumX = 0
-    for (let value2222 of currentGroundPieces) {
+    for (let value2222 of groundPieces) {
         if (value2222.right > groundMaximumX) {
             groundMaximumX = value2222.right
         }
@@ -767,7 +767,7 @@ function moveScreenElements () {
                 removeScreenElement(value4, true)
             }
         }
-        for (let value32 of currentGroundPieces) {
+        for (let value32 of groundPieces) {
             value32.vx = 0
         }
         for (let value42 of screenElements) {
@@ -780,7 +780,7 @@ function moveScreenElements () {
         }
     }
     if (dude.x + 1 > playerCannotMovePast && dude.vx > 0) {
-        for (let value5 of currentGroundPieces) {
+        for (let value5 of groundPieces) {
             value5.vx = gameSpeed
         }
         for (let value6 of screenElements) {
@@ -988,7 +988,7 @@ function createBackgroundSprites () {
         `
     aGround = sprites.create(ground10, SpriteKind.Ground)
     aGround.bottom = screenHeight
-    currentGroundPieces = [aGround]
+    groundPieces = [aGround]
     increaseDistanceExplored(aGround.width)
     setNextGap()
 }
@@ -1002,6 +1002,14 @@ function playerDies () {
         dude.setImage(dyingImages[1])
         controller.moveSprite(dude, 0, 0)
         dude.vy += -200
+        for (let value of screenElements) {
+            value.vx = 0
+            value.vy = 0
+        }
+        for (let value of groundPieces) {
+            value.vx = 0
+            value.vy = 0
+        }
         timer.after(250, function () {
             animation.runImageAnimation(
             dude,
@@ -1731,7 +1739,7 @@ sprites.onOverlap(SpriteKind.Weapon, SpriteKind.Snail, function (sprite, otherSp
 function checkOnGround () {
     if (!(dying)) {
         onGround = false
-        for (let value8 of currentGroundPieces) {
+        for (let value8 of groundPieces) {
             if (!(onGround)) {
                 if (dude.overlapsWith(value8)) {
                     while (dude.overlapsWith(value8)) {
@@ -1915,7 +1923,7 @@ function setRandomGround () {
     aGround.left = screenWidth
     aGround.bottom = screenHeight
     aGround.z = aGround.bottom
-    currentGroundPieces.push(aGround)
+    groundPieces.push(aGround)
     increaseDistanceExplored(aGround.width)
 }
 function checkPlayerPosition () {
@@ -1929,6 +1937,7 @@ function checkPlayerPosition () {
             playerDies()
         }
     }
+    dude.say(distanceExploredForLevel)
 }
 function getYBetweenTopAndGround () {
     return randint(minimumHeightForItems, maximumHeightForItems)
@@ -1979,7 +1988,7 @@ function setNextGap () {
     }
 }
 function placeOnGroundOutsideScreen (aSprite: Sprite) {
-    aSprite.bottom = currentGroundPieces[0].top
+    aSprite.bottom = groundPieces[0].top
     aSprite.left = screenWidth
     addScreenElement(aSprite)
 }
@@ -2546,8 +2555,6 @@ let jumping = false
 let dataDamage = ""
 let reduceEnergy2 = 0
 let takingDamage = false
-let minimumHeightForItems = 0
-let maximumHeightForItems = 0
 let rockLocationsLevelTemp: number[] = []
 let playerStartsAt = 0
 let snailLocationsLevel: number[] = []
@@ -2561,13 +2568,15 @@ let distanceExplored = 0
 let facingRight = false
 let playerEnergy: StatusBarSprite = null
 let dying = false
-let currentGroundPieces: Sprite[] = []
+let groundPieces: Sprite[] = []
 let screenElements: Sprite[] = []
 let spritesToDestroyAfterDying: Sprite[] = []
 let walkingImagesLeft: Image[] = []
 let walkingSpeed = 0
 let walkingImagesRight: Image[] = []
 let dude: Sprite = null
+let minimumHeightForItems = 0
+let maximumHeightForItems = 0
 let rockImage: Image = null
 let rockSprite: Sprite = null
 let distanceExploredForLevel = 0
@@ -2595,17 +2604,19 @@ game.onUpdate(function () {
     if (showingIntroduction) {
     	
     } else if (inLevel) {
-        reduceEnergyOverTime()
-        moveScreenElements()
         checkGroundOffScreen()
         getNextGroundPiece()
-        checkOnGround()
-        checkPlayer()
-        spawnFood()
-        spawnRocks()
-        spawnTrees()
-        spawnEnemies()
         removeDyingEnemies()
-        checkEnemyLocations()
+        checkEnemyPosition()
+        if (!(dying)) {
+            reduceEnergyOverTime()
+            moveScreenElements()
+            checkOnGround()
+            checkPlayer()
+            spawnFood()
+            spawnRocks()
+            spawnTrees()
+            spawnEnemies()
+        }
     }
 })
