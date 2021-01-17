@@ -38,7 +38,7 @@ function spawnRocks () {
             aLocation = rockLocationsLevel.removeAt(0)
             rockSprite = sprites.create(rockImage, SpriteKind.Rock)
             rockSprite.z = -1
-            placeOnGroundOutsideScreen(rockSprite)
+            placeOnGroundOutsideScreen(rockSprite, true)
         }
     }
 }
@@ -442,9 +442,37 @@ function setFood () {
         . f 4 4 5 5 5 . 
         . . f 4 5 5 . . 
         . . . f 5 . . . 
+        `, img`
+        . . . . . . 7 . . . . 
+        . 7 7 2 2 7 f 1 . . . 
+        . f f 2 2 f 7 1 1 . . 
+        . 1 1 f f 7 1 1 1 . . 
+        f 5 5 1 1 1 1 1 1 1 . 
+        f 5 5 5 5 1 1 1 1 1 . 
+        f 4 4 5 5 5 5 1 1 1 1 
+        f 5 5 4 4 5 5 5 5 1 1 
+        f 5 5 5 5 4 4 5 5 5 5 
+        . f f 5 5 5 5 4 4 5 5 
+        . . . f f 5 5 5 5 4 4 
+        . . . . . f f 5 5 5 5 
+        . . . . . . . f f 5 5 
+        . . . . . . . . . f . 
+        `, img`
+        . . . . . f f f f f f f f . . . . . 
+        . . . f f e e 4 4 4 5 5 e f f . . . 
+        . . f e e 4 4 5 5 5 1 1 5 5 e f . . 
+        . f e e e 4 5 5 5 5 5 5 5 1 5 e f . 
+        . f e e 4 4 5 5 5 5 5 5 5 5 5 e f . 
+        . f f e 4 4 4 5 5 5 5 5 5 5 5 7 7 f 
+        . f 7 7 7 7 4 4 4 5 5 5 5 5 f 7 f . 
+        f 7 7 e 7 7 f 5 5 5 5 5 5 f 5 5 f . 
+        . f e 4 4 7 7 f 5 5 5 5 5 5 5 e f . 
+        . . f 4 4 4 5 5 4 5 5 5 5 5 e f . . 
+        . . . f f 4 4 4 4 4 5 5 e f f . . . 
+        . . . . . f f f f f f f f . . . . . 
         `]
-    foodPoints = [50, 50, 100]
-    foodEnergies = [5, 5, 10]
+    foodPoints = [50, 50, 100, 200, 500]
+    foodEnergies = [5, 5, 10, 15, 20]
     foodLocations = [[
     [160, 0, -20, maximumHeightForItems],
     [224, 1, -20, 104],
@@ -452,7 +480,10 @@ function setFood () {
     [800, 1, -20, 66],
     [832, 0, -20, maximumHeightForItems],
     [1056, 2, -40, 80],
-    [1088, 1, -40, minimumHeightForItems]
+    [1088, 1, -40, minimumHeightForItems],
+    [1248, 0, -40, maximumHeightForItems],
+    [1296, 3, -60, 80],
+    [1328, 4, -10, minimumHeightForItems]
     ], [[160, 0, -20, maximumHeightForItems], [224, 1, -20, 104]]]
     foodLocationsLevel = [[165], [224], [240]]
     foodLocationsLevel = []
@@ -801,7 +832,7 @@ function spawnTrees () {
             aLocation = treeLocationsLevel.removeAt(0)
             treeSprite = sprites.create(treeImage, SpriteKind.Tree)
             treeSprite.z = -10
-            placeOnGroundOutsideScreen(treeSprite)
+            placeOnGroundOutsideScreen(treeSprite, false)
         }
     }
 }
@@ -1958,7 +1989,7 @@ function spawnSnails () {
             500,
             true
             )
-            placeOnGroundOutsideScreen(snailSprite)
+            placeOnGroundOutsideScreen(snailSprite, true)
             addSpriteToBeRemovedWhenDying(snailSprite)
         }
     }
@@ -1987,10 +2018,13 @@ function setNextGap () {
         gap = 0
     }
 }
-function placeOnGroundOutsideScreen (aSprite: Sprite) {
+function placeOnGroundOutsideScreen (aSprite: Sprite, destroyWhenPlayerDies: boolean) {
     aSprite.bottom = groundPieces[0].top
     aSprite.left = screenWidth
     addScreenElement(aSprite)
+    if (destroyWhenPlayerDies) {
+        addSpriteToBeRemovedWhenDying(aSprite)
+    }
 }
 function getYBetweenPlayerTopAndGround () {
     return randint(playerTop + 3, maximumHeightForItems)
