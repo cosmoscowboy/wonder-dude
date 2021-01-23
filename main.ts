@@ -17,6 +17,7 @@ namespace SpriteKind {
     export const Tree = SpriteKind.create()
     export const PlayerDead = SpriteKind.create()
     export const Spider = SpriteKind.create()
+    export const Bee = SpriteKind.create()
 }
 sprites.onOverlap(SpriteKind.Player, SpriteKind.Snake, function (sprite, otherSprite) {
     playerDies()
@@ -49,6 +50,15 @@ function checkEnemyPosition () {
             value.vy = value.vy * -1
         } else if (value.bottom <= minimumHeightForItems) {
             value.bottom = minimumHeightForItems + 2
+            value.vy = value.vy * -1
+        }
+    }
+    for (let value of sprites.allOfKind(SpriteKind.Bee)) {
+        if (value.bottom >= beesMaximumHeight) {
+            value.bottom = beesMaximumHeight - 2
+            value.vy = value.vy * -1
+        } else if (value.bottom <= beesMinimumHeight) {
+            value.bottom = beesMinimumHeight + 2
             value.vy = value.vy * -1
         }
     }
@@ -99,6 +109,77 @@ function restartInLevel () {
 function increaseDistanceExplored (distance: number) {
     distanceExplored += distance
     distanceExploredForLevel += distance
+}
+function setBees () {
+    beeSpeedX = 25
+    beeSpeedY = 25
+    beesMinimumHeight = 66
+    beesMaximumHeight = 88
+    beesMiddleHeight = (beesMaximumHeight - beesMinimumHeight) / 2
+    beeDying = img`
+        .................
+        .................
+        .................
+        ..........55.55..
+        .........55f55f..
+        .........5f5ff1..
+        ........2522e1f..
+        .......252222ef11
+        .......252222f111
+        ........5522f111f
+        .......554fe41ff.
+        .......54e444f...
+        .......555544f...
+        ....1..455554f...
+        ....1e..4444f....
+        ....5e..55555f...
+        ...55f.5555555f..
+        ...ff55fff5555f..
+        ...555f5f5f555f..
+        ....ff55f55f5f...
+        ....5555f55ff....
+        ......5f55ff.....
+        `
+    beeImages = [assets.image` Preview of assetidleRight2 Preview of asset running1 Preview of asset running2 Preview of asset running3 Preview of asset running4 Preview of asset running5 Preview of asset running6 Preview of asset throwing1 Preview of asset throwing2 Preview of asset idleRight1 Preview of asset axeRight1 Preview of asset axeRight2 Preview of asset axeRight3 Preview of asset axeRight4 Preview of asset egg Preview of asset eggBroken Preview of asset carrot Preview of asset lives Preview of asset weaponEquiped Preview of asset weaponNone Preview of asset apple Preview of asset banana Preview of asset twoHundred Preview of asset fifty Preview of asset fiveHundred Preview of asset hundred Preview of asset rock Preview of asset snail1 Preview of asset snail2 Preview of asset snailDead Preview of asset fallingLeft1 Preview of asset fallingLeft2 Preview of asset fallingRight1 Preview of asset fallingRight2 Preview of asset snake1 Preview of asset snake2 Preview of asset snake3 Preview of asset snakeDead Preview of asset start Preview of asset sectionTwo Preview of asset sectionThree Preview of asset sectionFour Preview of asset goal Preview of asset dying1 Preview of asset dying2 Preview of asset bee1 Preview of asset bee2 Preview of asset beeDead Preview of asset spider1 Preview of asset spider2 Preview of asset spiderDead Preview of asset cake Preview of asset hamburger`, img`
+        .....55..........
+        ...55.55.........
+        ....54.5.........
+        .....5f4.........
+        ......2522.......
+        .....252222.11...
+        .....2522221111..
+        ......5522eee111.
+        ......54fe444eef.
+        .......e45554ff..
+        ........5554e555.
+        .........5ecee5f.
+        ..........5ee555f
+        ..........555555f
+        ..........fff555f
+        .........5555ff5f
+        .........fff555f.
+        .........555ff5f.
+        .........ff555f..
+        .........eefff...
+        .......11eff.....
+        ........ff.......
+        `]
+    beeLocations = [[1408], [1408]]
+    beeLocationsLevelTemp = []
+    if (testing) {
+        for (let index42 = 0; index42 <= getLevelIndex() - 1; index42++) {
+            beeLocations.shift()
+        }
+        if (beeLocations.length > 0) {
+            beeLocationsLevel = beeLocations[getLevelIndex()]
+            for (let value9 of beeLocationsLevel) {
+                if (value9 >= distanceExploredForLevel) {
+                    beeLocationsLevelTemp.push(value9)
+                }
+            }
+            beeLocations[getLevelIndex()] = beeLocationsLevelTemp
+        }
+    }
 }
 sprites.onOverlap(SpriteKind.Weapon, SpriteKind.Ground, function (sprite, otherSprite) {
     sprite.destroy()
@@ -1099,6 +1180,7 @@ function spawnEnemies () {
     spawnSnails()
     spawnSnakes()
     spawnSpiders()
+    spawnBees()
 }
 function setTrees () {
     treeLocations = [[
@@ -1870,6 +1952,7 @@ function setEnemies () {
     setSnails()
     setSnakes()
     setSpiders()
+    setBees()
 }
 function spawnSnakes () {
     snakeLocationsLevel = snakeLocations[getLevelIndex()]
@@ -2489,9 +2572,39 @@ function checkPlayer () {
     checkPlayerPosition()
     checkPlayerOverlaps()
 }
+function spawnBees () {
+    beeLocationsLevel = beeLocations[getLevelIndex()]
+    if (beeLocationsLevel.length > 0) {
+        anEnemyLocation = beeLocationsLevel[0]
+        if (anEnemyLocation <= distanceExploredForLevel) {
+            anEnemyLocation = beeLocationsLevel.removeAt(0)
+            enemySprite = sprites.create(beeImages[0], SpriteKind.Bee)
+            enemySprite.bottom = randint(beesMinimumHeight + 2, beesMaximumHeight - 2)
+            sprites.setDataNumber(enemySprite, dataSpeedX, beeSpeedX)
+            if (enemySprite.y <= beesMiddleHeight) {
+                anEnemySpeedY = beeSpeedY
+            } else {
+                anEnemySpeedY = beeSpeedY * -1
+            }
+            sprites.setDataNumber(enemySprite, dataSpeedY, anEnemySpeedY)
+            sprites.setDataNumber(enemySprite, dataPoints, 30)
+            enemySprite.vy = anEnemySpeedY
+            animation.runImageAnimation(
+            enemySprite,
+            beeImages,
+            250,
+            true
+            )
+            placeOutsideScreen(enemySprite, enemySprite.bottom)
+            addSpriteToBeRemovedWhenDying(enemySprite)
+        }
+    }
+}
 sprites.onOverlap(SpriteKind.Player, SpriteKind.Snail, function (sprite, otherSprite) {
     playerHitByEnemyLosesEnergy(otherSprite, snailImageDying)
 })
+let anEnemySpeedY = 0
+let enemySprite: Sprite = null
 let pointsSprite: Sprite = null
 let pointsTaken = 0
 let weaponSprite: Sprite = null
@@ -2598,6 +2711,14 @@ let snailImages: Image[] = []
 let snailImageDying: Image = null
 let snailSpeed = 0
 let anEgg: Sprite = null
+let beeLocationsLevel: number[] = []
+let beeLocationsLevelTemp: number[] = []
+let beeLocations: number[][] = []
+let beeImages: Image[] = []
+let beeDying: Image = null
+let beesMiddleHeight = 0
+let beeSpeedY = 0
+let beeSpeedX = 0
 let distanceExplored = 0
 let facingRight = false
 let playerEnergy: StatusBarSprite = null
@@ -2609,6 +2730,8 @@ let walkingImagesLeft: Image[] = []
 let walkingSpeed = 0
 let walkingImagesRight: Image[] = []
 let dude: Sprite = null
+let beesMinimumHeight = 0
+let beesMaximumHeight = 0
 let minimumHeightForItems = 0
 let maximumHeightForItems = 0
 let rockImage: Image = null
