@@ -110,8 +110,13 @@ function increaseDistanceExplored (distance: number) {
     distanceExplored += distance
     distanceExploredForLevel += distance
 }
+sprites.onOverlap(SpriteKind.Weapon, SpriteKind.Bee, function (sprite, otherSprite) {
+    info.changeScoreBy(sprites.readDataNumber(otherSprite, dataPoints))
+    sprite.destroy()
+    enemyDies(otherSprite, beeDying)
+})
 function setBees () {
-    beeSpeedX = 25
+    beeSpeedX = -25
     beeSpeedY = 25
     beesMinimumHeight = 66
     beesMaximumHeight = 88
@@ -140,7 +145,7 @@ function setBees () {
         ....5555f55ff....
         ......5f55ff.....
         `
-    beeImages = [assets.image` Preview of assetidleRight2 Preview of asset running1 Preview of asset running2 Preview of asset running3 Preview of asset running4 Preview of asset running5 Preview of asset running6 Preview of asset throwing1 Preview of asset throwing2 Preview of asset idleRight1 Preview of asset axeRight1 Preview of asset axeRight2 Preview of asset axeRight3 Preview of asset axeRight4 Preview of asset egg Preview of asset eggBroken Preview of asset carrot Preview of asset lives Preview of asset weaponEquiped Preview of asset weaponNone Preview of asset apple Preview of asset banana Preview of asset twoHundred Preview of asset fifty Preview of asset fiveHundred Preview of asset hundred Preview of asset rock Preview of asset snail1 Preview of asset snail2 Preview of asset snailDead Preview of asset fallingLeft1 Preview of asset fallingLeft2 Preview of asset fallingRight1 Preview of asset fallingRight2 Preview of asset snake1 Preview of asset snake2 Preview of asset snake3 Preview of asset snakeDead Preview of asset start Preview of asset sectionTwo Preview of asset sectionThree Preview of asset sectionFour Preview of asset goal Preview of asset dying1 Preview of asset dying2 Preview of asset bee1 Preview of asset bee2 Preview of asset beeDead Preview of asset spider1 Preview of asset spider2 Preview of asset spiderDead Preview of asset cake Preview of asset hamburger`, img`
+    beeImages = [assets.image`strange name`, img`
         .....55..........
         ...55.55.........
         ....54.5.........
@@ -884,10 +889,14 @@ function moveScreenElements () {
         }
         for (let value42 of screenElements) {
             spriteSpeedX = sprites.readDataNumber(value42, dataSpeedX)
-            if (spriteSpeedX) {
-                value42.vx = spriteSpeedX
+            if (value42.left < screenWidth) {
+                if (spriteSpeedX) {
+                    value42.vx = spriteSpeedX
+                } else {
+                    value42.vx = 0
+                }
             } else {
-                value42.vx = 0
+                value42.vx = gameSpeed
             }
         }
     }
@@ -897,8 +906,12 @@ function moveScreenElements () {
         }
         for (let value6 of screenElements) {
             spriteSpeedX = sprites.readDataNumber(value6, dataSpeedX)
-            if (spriteSpeedX) {
-                value6.vx = gameSpeed - spriteSpeedX
+            if (value6.left < screenWidth) {
+                if (spriteSpeedX) {
+                	
+                } else {
+                    value6.vx = gameSpeed
+                }
             } else {
                 value6.vx = gameSpeed
             }
@@ -2508,6 +2521,9 @@ function setPlayerOnGround (ground: Sprite) {
     dude.vx = 0
     dude.vy = 0
 }
+sprites.onOverlap(SpriteKind.Player, SpriteKind.Bee, function (sprite, otherSprite) {
+    playerDies()
+})
 function showPoints (aSprite: Sprite) {
     if (sprites.readDataNumber(aSprite, dataPoints) == 500) {
         anImage = pointsImages[3]
@@ -2679,7 +2695,6 @@ let weapon: Sprite = null
 let foodEnergies: number[] = []
 let dataEnergy = ""
 let foodPoints: number[] = []
-let dataPoints = ""
 let foodImages: Image[] = []
 let foodSprite: Sprite = null
 let foodType = 0
@@ -2715,10 +2730,11 @@ let beeLocationsLevel: number[] = []
 let beeLocationsLevelTemp: number[] = []
 let beeLocations: number[][] = []
 let beeImages: Image[] = []
-let beeDying: Image = null
 let beesMiddleHeight = 0
 let beeSpeedY = 0
 let beeSpeedX = 0
+let beeDying: Image = null
+let dataPoints = ""
 let distanceExplored = 0
 let facingRight = false
 let playerEnergy: StatusBarSprite = null
