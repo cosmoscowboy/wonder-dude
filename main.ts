@@ -110,8 +110,13 @@ function increaseDistanceExplored (distance: number) {
     distanceExplored += distance
     distanceExploredForLevel += distance
 }
+sprites.onOverlap(SpriteKind.Weapon, SpriteKind.Bee, function (sprite, otherSprite) {
+    info.changeScoreBy(sprites.readDataNumber(otherSprite, dataPoints))
+    sprite.destroy()
+    enemyDies(otherSprite, beeDying)
+})
 function setBees () {
-    beeSpeedX = 25
+    beeSpeedX = -25
     beeSpeedY = 25
     beesMinimumHeight = 66
     beesMaximumHeight = 88
@@ -884,10 +889,14 @@ function moveScreenElements () {
         }
         for (let value42 of screenElements) {
             spriteSpeedX = sprites.readDataNumber(value42, dataSpeedX)
-            if (spriteSpeedX) {
-                value42.vx = spriteSpeedX
+            if (value42.left < screenWidth) {
+                if (spriteSpeedX) {
+                    value42.vx = spriteSpeedX
+                } else {
+                    value42.vx = 0
+                }
             } else {
-                value42.vx = 0
+                value42.vx = gameSpeed
             }
         }
     }
@@ -897,8 +906,12 @@ function moveScreenElements () {
         }
         for (let value6 of screenElements) {
             spriteSpeedX = sprites.readDataNumber(value6, dataSpeedX)
-            if (spriteSpeedX) {
-                value6.vx = gameSpeed - spriteSpeedX
+            if (value6.left < screenWidth) {
+                if (spriteSpeedX) {
+                	
+                } else {
+                    value6.vx = gameSpeed
+                }
             } else {
                 value6.vx = gameSpeed
             }
@@ -2508,6 +2521,9 @@ function setPlayerOnGround (ground: Sprite) {
     dude.vx = 0
     dude.vy = 0
 }
+sprites.onOverlap(SpriteKind.Player, SpriteKind.Bee, function (sprite, otherSprite) {
+    playerDies()
+})
 function showPoints (aSprite: Sprite) {
     if (sprites.readDataNumber(aSprite, dataPoints) == 500) {
         anImage = pointsImages[3]
@@ -2679,7 +2695,6 @@ let weapon: Sprite = null
 let foodEnergies: number[] = []
 let dataEnergy = ""
 let foodPoints: number[] = []
-let dataPoints = ""
 let foodImages: Image[] = []
 let foodSprite: Sprite = null
 let foodType = 0
@@ -2715,10 +2730,11 @@ let beeLocationsLevel: number[] = []
 let beeLocationsLevelTemp: number[] = []
 let beeLocations: number[][] = []
 let beeImages: Image[] = []
-let beeDying: Image = null
 let beesMiddleHeight = 0
 let beeSpeedY = 0
 let beeSpeedX = 0
+let beeDying: Image = null
+let dataPoints = ""
 let distanceExplored = 0
 let facingRight = false
 let playerEnergy: StatusBarSprite = null
