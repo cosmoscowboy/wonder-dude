@@ -19,6 +19,7 @@ namespace SpriteKind {
     export const Spider = SpriteKind.create()
     export const Bee = SpriteKind.create()
     export const Fire = SpriteKind.create()
+    export const Cloud = SpriteKind.create()
 }
 sprites.onOverlap(SpriteKind.Player, SpriteKind.Snake, function (sprite, otherSprite) {
     playerDies()
@@ -414,6 +415,26 @@ function reduceEnergyOverTime () {
 function getLevelIndex () {
     return level - 1
 }
+function setClouds () {
+    cloudsMinimumHeight = 5
+    cloudsMaximumHeight = 23
+    cloudImages = [assets.image`cloudSmall`, assets.image`cloudLarge`]
+    cloudLocations = [[1616, 1680, 1760], [1408]]
+    if (testing) {
+        for (let index42 = 0; index42 <= getLevelIndex() - 1; index42++) {
+            cloudLocations.shift()
+        }
+        if (cloudLocations.length > 0) {
+            itemLocationsLevel = cloudLocations[getLevelIndex()]
+            for (let value9 of itemLocationsLevel) {
+                if (value9 >= distanceExploredForLevel) {
+                    itemLocationsLevelTemp.push(value9)
+                }
+            }
+            cloudLocations[getLevelIndex()] = itemLocationsLevelTemp
+        }
+    }
+}
 function defineImages () {
     weaponImagesRight = [assets.image`weaponThrown1`, assets.image`weaponThrown2`, assets.image`weaponThrown3`, assets.image`weaponThrown4`]
     weaponImagesLeft = []
@@ -558,9 +579,9 @@ controller.right.onEvent(ControllerButtonEvent.Pressed, function () {
 function spawnSpiders () {
     spiderLocationsLevel = spiderLocations[getLevelIndex()]
     if (spiderLocationsLevel.length > 0) {
-        anEnemyLocation = spiderLocationsLevel[0]
-        if (anEnemyLocation <= distanceExploredForLevel) {
-            anEnemyLocation = spiderLocationsLevel.removeAt(0)
+        aLocation = spiderLocationsLevel[0]
+        if (aLocation <= distanceExploredForLevel) {
+            aLocation = spiderLocationsLevel.removeAt(0)
             spiderSprite = sprites.create(spiderImages[0], SpriteKind.Spider)
             spiderSprite.bottom = maximumHeightForItems
             sprites.setDataNumber(spiderSprite, dataSpeedY, spiderSpeed)
@@ -578,7 +599,7 @@ function spawnSpiders () {
             250,
             true
             )
-            placeOutsideScreen(spiderSprite, spriteBottom)
+            placeOutsideScreen(spiderSprite, spriteBottom, true)
             addSpriteToBeRemovedWhenDying(spiderSprite)
         }
     }
@@ -769,9 +790,9 @@ function setEnemies () {
 function spawnSnakes () {
     snakeLocationsLevel = snakeLocations[getLevelIndex()]
     if (snakeLocationsLevel.length > 0) {
-        anEnemyLocation = snakeLocationsLevel[0]
-        if (anEnemyLocation <= distanceExploredForLevel) {
-            anEnemyLocation = snakeLocationsLevel.removeAt(0)
+        aLocation = snakeLocationsLevel[0]
+        if (aLocation <= distanceExploredForLevel) {
+            aLocation = snakeLocationsLevel.removeAt(0)
             snakeSprite = sprites.create(img`
                 .........................
                 .........................
@@ -819,6 +840,19 @@ function spawnSnakes () {
                 true
                 )
             })
+        }
+    }
+}
+function spawnClouds () {
+    itemLocationsLevel = cloudLocations[getLevelIndex()]
+    if (itemLocationsLevel.length > 0) {
+        aLocation = itemLocationsLevel[0]
+        if (aLocation <= distanceExploredForLevel) {
+            aLocation = itemLocationsLevel.removeAt(0)
+            aSprite = sprites.create(cloudImages[randint(0, cloudImages.length - 1)], SpriteKind.Cloud)
+            aSprite.top = randint(cloudsMinimumHeight, cloudsMaximumHeight)
+            aSprite.z = -10
+            placeOutsideScreen(aSprite, aSprite.top, false)
         }
     }
 }
@@ -871,9 +905,9 @@ function getYBetweenTopAndGround () {
 function spawnSnails () {
     snailLocationsLevel = snailLocations[getLevelIndex()]
     if (snailLocationsLevel.length > 0) {
-        anEnemyLocation = snailLocationsLevel[0]
-        if (anEnemyLocation <= distanceExploredForLevel) {
-            anEnemyLocation = snailLocationsLevel.removeAt(0)
+        aLocation = snailLocationsLevel[0]
+        if (aLocation <= distanceExploredForLevel) {
+            aLocation = snailLocationsLevel.removeAt(0)
             snailSprite = sprites.create(snailImages[0], SpriteKind.Snail)
             sprites.setDataNumber(snailSprite, dataSpeedX, snailSpeed)
             sprites.setDataNumber(snailSprite, dataDamage, 15)
@@ -901,8 +935,12 @@ sprites.onOverlap(SpriteKind.Player, SpriteKind.Food, function (sprite, otherSpr
         removeScreenElement(otherSprite, true)
     }
 })
-function placeOutsideScreen (aSprite: Sprite, bottom: number) {
-    aSprite.bottom = bottom
+function placeOutsideScreen (aSprite: Sprite, yPosition: number, useBottom: boolean) {
+    if (useBottom) {
+        aSprite.bottom = yPosition
+    } else {
+        aSprite.top = yPosition
+    }
     aSprite.left = screenWidth
     addScreenElement(aSprite)
 }
@@ -1119,28 +1157,28 @@ function checkPlayer () {
 function spawnBees () {
     beeLocationsLevel = beeLocations[getLevelIndex()]
     if (beeLocationsLevel.length > 0) {
-        anEnemyLocation = beeLocationsLevel[0]
-        if (anEnemyLocation <= distanceExploredForLevel) {
-            anEnemyLocation = beeLocationsLevel.removeAt(0)
-            enemySprite = sprites.create(beeImages[0], SpriteKind.Bee)
-            enemySprite.bottom = randint(beesMinimumHeight + 2, beesMaximumHeight - 2)
-            sprites.setDataNumber(enemySprite, dataSpeedX, beeSpeedX)
-            if (enemySprite.y <= beesMiddleHeight) {
+        aLocation = beeLocationsLevel[0]
+        if (aLocation <= distanceExploredForLevel) {
+            aLocation = beeLocationsLevel.removeAt(0)
+            aSprite = sprites.create(beeImages[0], SpriteKind.Bee)
+            aSprite.bottom = randint(beesMinimumHeight + 2, beesMaximumHeight - 2)
+            sprites.setDataNumber(aSprite, dataSpeedX, beeSpeedX)
+            if (aSprite.y <= beesMiddleHeight) {
                 anEnemySpeedY = beeSpeedY
             } else {
                 anEnemySpeedY = beeSpeedY * -1
             }
-            sprites.setDataNumber(enemySprite, dataSpeedY, anEnemySpeedY)
-            sprites.setDataNumber(enemySprite, dataPoints, 30)
-            enemySprite.vy = anEnemySpeedY
+            sprites.setDataNumber(aSprite, dataSpeedY, anEnemySpeedY)
+            sprites.setDataNumber(aSprite, dataPoints, 30)
+            aSprite.vy = anEnemySpeedY
             animation.runImageAnimation(
-            enemySprite,
+            aSprite,
             beeImages,
             250,
             true
             )
-            placeOutsideScreen(enemySprite, enemySprite.bottom)
-            addSpriteToBeRemovedWhenDying(enemySprite)
+            placeOutsideScreen(aSprite, aSprite.bottom, true)
+            addSpriteToBeRemovedWhenDying(aSprite)
         }
     }
 }
@@ -1148,7 +1186,6 @@ sprites.onOverlap(SpriteKind.Player, SpriteKind.Snail, function (sprite, otherSp
     playerHitByEnemyLosesEnergy(otherSprite, snailImageDying)
 })
 let anEnemySpeedY = 0
-let enemySprite: Sprite = null
 let pointsSprite: Sprite = null
 let pointsTaken = 0
 let weaponSprite: Sprite = null
@@ -1156,12 +1193,12 @@ let snakeLocationsLevelTemp: number[] = []
 let snakeImageDying: Image = null
 let snailSprite: Sprite = null
 let groundLength = 0
+let aSprite: Sprite = null
 let snakeImages: Image[] = []
 let snakeImagesAppearing: Image[] = []
 let snakeSprite: Sprite = null
 let snakeLocations: number[][] = []
 let snakeLocationsLevel: number[] = []
-let itemLocationsLevelTemp: number[] = []
 let spiderLocationsLevelTemp: number[] = []
 let spiderImageDying: Image = null
 let jumpingImageLeft: Image = null
@@ -1177,7 +1214,6 @@ let spriteBottom = 0
 let spiderSpeed = 0
 let spiderImages: Image[] = []
 let spiderSprite: Sprite = null
-let anEnemyLocation = 0
 let spiderLocations: number[][] = []
 let spiderLocationsLevel: number[] = []
 let dyingImages: Image[] = []
@@ -1201,6 +1237,11 @@ let pointsImages: Image[] = []
 let anImage: Image = null
 let weaponImagesLeft: Image[] = []
 let weaponImagesRight: Image[] = []
+let itemLocationsLevelTemp: number[] = []
+let cloudLocations: number[][] = []
+let cloudImages: Image[] = []
+let cloudsMaximumHeight = 0
+let cloudsMinimumHeight = 0
 let nextGroundPiece: Sprite = null
 let aGround: Sprite = null
 let foodLocationsLevelTemp: number[][] = []
@@ -1296,6 +1337,7 @@ setVariables()
 setFood()
 setRocks()
 setFires()
+setClouds()
 setTrees()
 setEnemies()
 createBackgroundSprites()
@@ -1324,6 +1366,7 @@ game.onUpdate(function () {
             spawnRocks()
             spawnFires()
             spawnTrees()
+            spawnClouds()
             spawnEnemies()
         }
     }
