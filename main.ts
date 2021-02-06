@@ -247,7 +247,7 @@ function setPlayer () {
     energyLastLostTime = game.runtime() + eneryLostEveryMs
     setPlayerImages()
     dude = sprites.create(idleImagesRight[0], SpriteKind.Player)
-    walkingSpeed = 75
+    walkingSpeed = 80
     havePlayerMove()
     playerEnergy = statusbars.create(60, 8, StatusBarKind.Energy)
     playerEnergy.x = screenWidth / 2
@@ -882,7 +882,7 @@ function setRandomGround () {
     }
     aGround.left = screenWidth
     aGround.bottom = screenHeight
-    aGround.z = aGround.bottom
+    aGround.z = -9
     groundPieces.push(aGround)
     increaseDistanceExplored(aGround.width)
 }
