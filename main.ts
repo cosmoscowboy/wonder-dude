@@ -150,7 +150,7 @@ function setBees () {
             beeLocations.shift()
         }
         if (beeLocations.length > 0) {
-            beeLocationsLevel = beeLocations[getLevelIndex()]
+            beeLocationsLevel = beeLocations[0]
             for (let value9 of beeLocationsLevel) {
                 if (value9 >= distanceExploredForLevel) {
                     beeLocationsLevelTemp.push(value9)
@@ -181,7 +181,7 @@ function setSnails () {
             snailLocations.shift()
         }
         if (snailLocations.length > 0) {
-            snailLocationsLevel = snailLocations[getLevelIndex()]
+            snailLocationsLevel = snailLocations[0]
             for (let value of snailLocationsLevel) {
                 if (value >= distanceExploredForLevel) {
                     snailLocationsLevelTemp.push(value)
@@ -210,7 +210,7 @@ function setRocks () {
             rockLocations.shift()
         }
         if (rockLocations.length > 0) {
-            rockLocationsLevel = rockLocations[getLevelIndex()]
+            rockLocationsLevel = rockLocations[0]
             for (let value2 of rockLocationsLevel) {
                 if (value2 >= distanceExploredForLevel) {
                     rockLocationsLevelTemp.push(value2)
@@ -318,10 +318,10 @@ function setVariables () {
     scene.setBackgroundColor(8)
     screenWidth = scene.screenWidth()
     screenHeight = scene.screenHeight()
-    level = 1
+    level = 2
     area = 1
     groundHasGapsAfterLevel = 3
-    testing = false
+    testing = true
     showingIntroduction = false
     inLevel = []
     groundHasGaps = false
@@ -361,23 +361,31 @@ function setFood () {
     [1296, 3, -60, 80],
     [1328, 4, -10, minimumHeightForItems]
     ], [[160, 0, -20, maximumHeightForItems], [224, 1, -20, 104]]]
+    foodLocationsVisited = [[[160]], [[160]]]
+    foodLocationsVisited = []
     foodLocationsLevel = [[165], [224], [240]]
     foodLocationsLevel = []
+    foodLocationsLevelVisited = [[165], [224], [240]]
+    foodLocationsLevelVisited = []
     foodLocationsLevelTemp = [[165], [224], [240]]
     foodLocationsLevelTemp = []
     foodLocationSet = [165]
     foodLocationSet = []
+    foodLocationSetVisited = [165]
+    foodLocationSetVisited = []
     if (testing) {
         for (let index3 = 0; index3 <= getLevelIndex() - 1; index3++) {
-            foodLocations.shift()
+            foodLocationsVisited.push(foodLocations.shift())
         }
         if (foodLocations.length > 0) {
-            foodLocationsLevel = foodLocations[getLevelIndex()]
-            for (let value3 of foodLocationsLevel) {
-                foodLocationSet = foodLocationsLevel[0]
+            foodLocationsLevel = foodLocations[0]
+            for (let index = 0; index <= foodLocationsLevel.length - 1; index++) {
+                foodLocationSet = foodLocationsLevel[index]
                 foodLocation = foodLocationSet[0]
                 if (foodLocation >= distanceExploredForLevel) {
-                    foodLocationsLevelTemp.push(value3)
+                    foodLocationsLevelTemp.push(foodLocationSet)
+                } else {
+                    foodLocationsLevelVisited.push(foodLocationSet)
                 }
             }
             foodLocations[getLevelIndex()] = foodLocationsLevelTemp
@@ -425,7 +433,7 @@ function setClouds () {
             cloudLocations.shift()
         }
         if (cloudLocations.length > 0) {
-            itemLocationsLevel = cloudLocations[getLevelIndex()]
+            itemLocationsLevel = cloudLocations[0]
             for (let value9 of itemLocationsLevel) {
                 if (value9 >= distanceExploredForLevel) {
                     itemLocationsLevelTemp.push(value9)
@@ -634,7 +642,7 @@ function setTrees () {
             treeLocations.shift()
         }
         if (treeLocations.length > 0) {
-            treeLocationsLevel = treeLocations[getLevelIndex()]
+            treeLocationsLevel = treeLocations[0]
             for (let value2 of treeLocationsLevel) {
                 if (value2 >= distanceExploredForLevel) {
                     treeLocationsLevelTemp.push(value2)
@@ -749,7 +757,7 @@ function setSpiders () {
             spiderLocations.shift()
         }
         if (spiderLocations.length > 0) {
-            spiderLocationsLevel = spiderLocations[getLevelIndex()]
+            spiderLocationsLevel = spiderLocations[0]
             for (let value of spiderLocationsLevel) {
                 if (value >= distanceExploredForLevel) {
                     spiderLocationsLevelTemp.push(value)
@@ -768,7 +776,7 @@ function setFires () {
             fireLocations.shift()
         }
         if (fireLocations.length > 0) {
-            itemLocationsLevel = fireLocations[getLevelIndex()]
+            itemLocationsLevel = fireLocations[0]
             for (let value2 of itemLocationsLevel) {
                 if (value2 >= distanceExploredForLevel) {
                     itemLocationsLevelTemp.push(value2)
@@ -984,7 +992,7 @@ function setSnakes () {
             snakeLocations.shift()
         }
         if (snakeLocations.length > 0) {
-            snakeLocationsLevel = snakeLocations[getLevelIndex()]
+            snakeLocationsLevel = snakeLocations[0]
             for (let value9 of snakeLocationsLevel) {
                 if (value9 >= distanceExploredForLevel) {
                     snakeLocationsLevelTemp.push(value9)
@@ -1244,7 +1252,10 @@ let cloudsMaximumHeight = 0
 let cloudsMinimumHeight = 0
 let nextGroundPiece: Sprite = null
 let aGround: Sprite = null
+let foodLocationSetVisited: number[] = []
 let foodLocationsLevelTemp: number[][] = []
+let foodLocationsLevelVisited: number[][] = []
+let foodLocationsVisited: number[][][] = []
 let dataCanMoveUpAndDown = ""
 let dataSpeedY = ""
 let dataSpeedX = ""
